@@ -26,7 +26,10 @@ def create_workspace(
         raise ConflictError("workspace slug already exists")
     with transaction.atomic():
         workspace = Workspace.objects.create(
-            name=name, slug=slug, organization=organization, **fields
+            name=name,
+            slug=slug,
+            organization=organization,  # type: ignore[misc]  # nullable FK, stubs say otherwise
+            **fields,
         )
         Membership.objects.create(workspace=workspace, user=owner, role=Role.OWNER)
         record_event(

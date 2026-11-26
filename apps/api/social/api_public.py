@@ -5,7 +5,7 @@ from typing import Any
 
 from django.http import FileResponse, HttpRequest, HttpResponse
 from ninja import Router
-from ninja.throttling import AnonRateThrottle
+from ninja.throttling import AnonRateThrottle, BaseThrottle
 
 from core.errors import NotFoundError
 from media.storage import get_storage
@@ -16,7 +16,7 @@ router = Router(tags=["instagram-public"], auth=None)
 
 # Instagram calls these from a handful of addresses in bursts; deliveries are signed and links are
 # signed, so the default anonymous limit (60 a minute) would only drop real events.
-PUBLIC_LIMIT = [AnonRateThrottle("600/m")]
+PUBLIC_LIMIT: list[BaseThrottle] = [AnonRateThrottle("600/m")]
 
 MAX_BODY = 1_000_000
 

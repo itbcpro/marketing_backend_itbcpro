@@ -169,7 +169,7 @@ def _draw(generator: images.ImageGenerator, prompt: str, orientation: str) -> by
     for pause in (*BACKOFF_SECONDS, None):
         try:
             return generator.generate(prompt, orientation=orientation)
-        except (RateLimitedError, RetryableProviderError):
+        except RateLimitedError, RetryableProviderError:
             if pause is None:
                 raise
             time.sleep(pause)
@@ -188,7 +188,7 @@ def design(
         return None
     began = timezone.now()
     problems = ""
-    for attempt in range(MAX_ATTEMPTS):
+    for _attempt in range(MAX_ATTEMPTS):
         # Every try keeps the designed look and every line: a retry only tells the model what it
         # got wrong, so the picture does not degrade into a plain poster after a stray word.
         expected = lines

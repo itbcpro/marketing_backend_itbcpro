@@ -78,6 +78,7 @@ ignore = ["ANN401", "PLR0913", "PLR0917", "RUF012"]
 "conftest.py" = ["PLC0415", "S105"]
 "crm/**/tests/**" = ["S101", "PLR2004", "ANN", "PT011", "E501", "PLC0415"]
 "crm/ops/demo/**" = ["PLR2004", "S311", "DTZ011", "E501", "C408"]  # fake data for dev only
+"media/specs.py" = ["E501"]  # one spec per line, table layout
 "core/tests/test_tenancy.py" = ["S608"]  # the probe table name is a constant
 "conftest_contracts.py" = ["S101", "E501"]
 "manage.py" = ["PLC0415"]

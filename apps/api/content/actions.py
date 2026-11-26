@@ -286,7 +286,7 @@ def _patched_body(
         attribute = f'alt="{html.escape(text, quote=True)}"'
         markup = tag.group(0)
         markup = (
-            IMG_ALT.sub(lambda _m, a=attribute: a, markup, count=1)
+            IMG_ALT.sub(attribute.replace("\\", "\\\\"), markup, count=1)
             if IMG_ALT.search(markup)
             else markup.replace("<img", f"<img {attribute}", 1)
         )

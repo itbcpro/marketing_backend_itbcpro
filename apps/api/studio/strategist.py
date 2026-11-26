@@ -97,7 +97,9 @@ def _stiff(idea: IdeaOut) -> bool:
     return bool(LABEL.match(idea.why_now.strip()))
 
 
-def _ask(brand: Brand, config: StudioConfig, items: list[TrendItem], count: int, note: str):
+def _ask(
+    brand: Brand, config: StudioConfig, items: list[TrendItem], count: int, note: str
+) -> IdeaBatch:
     return ai.run_prompt(
         brand.workspace_id,
         PROMPT_KEY,

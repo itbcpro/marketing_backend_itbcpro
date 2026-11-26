@@ -71,7 +71,7 @@ def resolve_attachments(item: ContentItem) -> bool:
     Page builders leave the id out of the markup. A picture is only matched when exactly one
     library file has that name; anything else stays unmatched (and is refused when applying).
     """
-    todo = {
+    todo: dict[str, int | None] = {
         file_key(str(i["src"])): None
         for i in item.images
         if not i.get("attachment_id") and _same_site(item, str(i["src"]))
