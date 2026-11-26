@@ -10724,6 +10724,10 @@
             "title": "Id",
             "type": "string"
           },
+          "is_platform_admin": {
+            "title": "Is Platform Admin",
+            "type": "boolean"
+          },
           "locale": {
             "title": "Locale",
             "type": "string"
@@ -10743,6 +10747,10 @@
             "title": "Mfa Enrollment Required",
             "type": "boolean"
           },
+          "must_change_password": {
+            "title": "Must Change Password",
+            "type": "boolean"
+          },
           "time_zone": {
             "title": "Time Zone",
             "type": "string"
@@ -10756,6 +10764,8 @@
           "time_zone",
           "mfa_enabled",
           "mfa_enrollment_required",
+          "is_platform_admin",
+          "must_change_password",
           "memberships"
         ],
         "title": "MeOut",
@@ -12625,6 +12635,54 @@
           "campaigns"
         ],
         "title": "OverviewOut",
+        "type": "object"
+      },
+      "OwnerAddIn": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "full_name": {
+            "default": "",
+            "title": "Full Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "OwnerAddIn",
+        "type": "object"
+      },
+      "OwnerCreatedOut": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "existing_user": {
+            "title": "Existing User",
+            "type": "boolean"
+          },
+          "temporary_password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temporary Password"
+          }
+        },
+        "required": [
+          "email",
+          "existing_user",
+          "temporary_password"
+        ],
+        "title": "OwnerCreatedOut",
         "type": "object"
       },
       "OwnerRow": {
@@ -19432,6 +19490,138 @@
           "reason"
         ],
         "title": "TemplateSendOut",
+        "type": "object"
+      },
+      "TenantActiveIn": {
+        "properties": {
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "is_active"
+        ],
+        "title": "TenantActiveIn",
+        "type": "object"
+      },
+      "TenantCreateIn": {
+        "properties": {
+          "organization_name": {
+            "title": "Organization Name",
+            "type": "string"
+          },
+          "owner_email": {
+            "title": "Owner Email",
+            "type": "string"
+          },
+          "owner_full_name": {
+            "default": "",
+            "title": "Owner Full Name",
+            "type": "string"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          },
+          "workspace_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Name"
+          }
+        },
+        "required": [
+          "organization_name",
+          "owner_email"
+        ],
+        "title": "TenantCreateIn",
+        "type": "object"
+      },
+      "TenantCreatedOut": {
+        "properties": {
+          "owner": {
+            "$ref": "#/components/schemas/OwnerCreatedOut"
+          },
+          "tenant": {
+            "$ref": "#/components/schemas/TenantOut"
+          }
+        },
+        "required": [
+          "tenant",
+          "owner"
+        ],
+        "title": "TenantCreatedOut",
+        "type": "object"
+      },
+      "TenantOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "member_count": {
+            "title": "Member Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "organization_name": {
+            "title": "Organization Name",
+            "type": "string"
+          },
+          "owner_emails": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Owner Emails",
+            "type": "array"
+          },
+          "plan_key": {
+            "title": "Plan Key",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "organization_name",
+          "plan_key",
+          "is_active",
+          "created_at",
+          "member_count",
+          "owner_emails"
+        ],
+        "title": "TenantOut",
         "type": "object"
       },
       "TokenCreateIn": {
@@ -38465,6 +38655,204 @@
         "summary": "Status",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/api/v1/platform/tenants": {
+      "get": {
+        "operationId": "platform_tenants",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TenantOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          }
+        ],
+        "summary": "List Tenants",
+        "tags": [
+          "platform"
+        ]
+      },
+      "post": {
+        "operationId": "platform_tenant_create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantCreatedOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          }
+        ],
+        "summary": "Create Tenant",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/tenants/{workspace_id}": {
+      "get": {
+        "operationId": "platform_tenant",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          }
+        ],
+        "summary": "Get Tenant",
+        "tags": [
+          "platform"
+        ]
+      },
+      "patch": {
+        "operationId": "platform_tenant_set_active",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantActiveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          }
+        ],
+        "summary": "Set Tenant Active",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/tenants/{workspace_id}/owners": {
+      "post": {
+        "operationId": "platform_tenant_add_owner",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwnerAddIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerCreatedOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          }
+        ],
+        "summary": "Add Owner",
+        "tags": [
+          "platform"
         ]
       }
     },

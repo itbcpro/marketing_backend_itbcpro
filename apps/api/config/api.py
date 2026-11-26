@@ -81,6 +81,7 @@ from studio.api_brands import router as studio_brands_router
 from studio.api_pieces import router as studio_posts_router
 from studio.api_trends import router as studio_trends_router
 from workspaces.api import router as workspaces_router
+from workspaces.api_platform import router as platform_router
 
 log = get_logger(__name__)
 
@@ -159,6 +160,7 @@ def handle_unexpected(request: HttpRequest, exc: Exception) -> HttpResponse:
 
 api.add_router("/auth", auth_router)
 api.add_router("/workspaces", workspaces_router)
+api.add_router("/platform", platform_router)
 api.add_router("/audit", audit_router)
 api.add_router("/connections", connections_router)
 api.add_router("/actions", actions_router)

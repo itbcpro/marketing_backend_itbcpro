@@ -230,6 +230,7 @@ def _apply_new_password(
     _validate_new_password(user, new_password)
     user.set_password(new_password)
     user.password_changed_at = timezone.now()
+    user.must_change_password = False
     user.failed_login_count = 0
     user.locked_until = None
     user.save()

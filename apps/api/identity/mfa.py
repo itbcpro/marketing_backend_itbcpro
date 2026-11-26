@@ -173,7 +173,12 @@ def remaining_recovery_codes(user: User) -> int:
 
 
 def requires_mfa_enrollment(user: User) -> bool:
-    """True when a role held by the user must use MFA and none is set up yet."""
+    """True when the user must use MFA and none is set up yet.
+
+    Platform administrators (superusers) always must: they can create tenants and owners.
+    """
+    if user.is_superuser:
+        return not mfa_enabled(user)
     required = list(settings.MFA_REQUIRED_ROLES)
     if not required or mfa_enabled(user):
         return False

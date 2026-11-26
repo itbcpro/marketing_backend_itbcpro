@@ -46,6 +46,8 @@ class MeOut(Schema):
     time_zone: str
     mfa_enabled: bool
     mfa_enrollment_required: bool
+    is_platform_admin: bool
+    must_change_password: bool
     memberships: list[MembershipOut]
 
 
@@ -164,6 +166,8 @@ def _me(user: User) -> MeOut:
         time_zone=user.time_zone,
         mfa_enabled=mfa.mfa_enabled(user),
         mfa_enrollment_required=mfa.requires_mfa_enrollment(user),
+        is_platform_admin=user.is_superuser and user.is_active,
+        must_change_password=user.must_change_password,
         memberships=[
             MembershipOut(
                 workspace_id=str(m.workspace_id),

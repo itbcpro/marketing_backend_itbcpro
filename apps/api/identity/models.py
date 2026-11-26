@@ -50,6 +50,9 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     failed_login_count = models.PositiveSmallIntegerField(default=0)
     locked_until = models.DateTimeField(null=True, blank=True)
     password_changed_at = models.DateTimeField(null=True, blank=True)
+    must_change_password = models.BooleanField(
+        default=False, help_text="Set when an administrator chose the password."
+    )
 
     objects = UserManager()
 
