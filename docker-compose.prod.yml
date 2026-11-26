@@ -93,7 +93,7 @@ services:
       disable: true
     depends_on:
       api: { condition: service_healthy }
-    mem_limit: ${BEAT_MEM_LIMIT:-256m}
+    mem_limit: ${BEAT_MEM_LIMIT:-512m}
 
   web:
     <<: *hardening
