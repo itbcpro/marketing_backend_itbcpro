@@ -1,6 +1,8 @@
 name: Deploy
 
-# Push to main: run every CI gate, build the API image, ship it to the server.
+# Push to main: build the API image, ship it to the server. CI gates (tests) are temporarily NOT part of this
+# pipeline; they still run on pull requests (ci.yml). To restore them, add a `ci` job that calls ci.yml and
+# make `changes` need it.
 # The web image is built and shipped by the web repository (marketing_front_itbcpro).
 # Configuration lives in GitHub, never in the repository (see docs/deploy.md):
 #   secrets:   DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS, POSTGRES_PASSWORD, REDIS_PASSWORD, APP_SECRET_KEY,
@@ -24,15 +26,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ci:
-    name: CI gates
-    uses: ./.github/workflows/ci.yml
-    permissions:
-      contents: read
-
   changes:
     name: Detect changes
-    needs: ci
     runs-on: ubuntu-latest
     outputs:
       api: ${{ steps.diff.outputs.api }}
