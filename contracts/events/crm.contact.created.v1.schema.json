@@ -1,0 +1,19 @@
+{
+  "properties": {
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "source": {
+      "default": "",
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contact_id"
+  ],
+  "title": "ContactCreated",
+  "type": "object"
+}

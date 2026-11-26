@@ -1,0 +1,25 @@
+{
+  "properties": {
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "tag_id": {
+      "format": "uuid",
+      "title": "Tag Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contact_id",
+    "tag_id",
+    "name"
+  ],
+  "title": "TagAdded",
+  "type": "object"
+}

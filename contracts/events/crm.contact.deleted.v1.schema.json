@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contact_id"
+  ],
+  "title": "ContactDeleted",
+  "type": "object"
+}

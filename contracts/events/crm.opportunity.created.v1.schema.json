@@ -1,0 +1,42 @@
+{
+  "properties": {
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "currency": {
+      "title": "Currency",
+      "type": "string"
+    },
+    "opportunity_id": {
+      "format": "uuid",
+      "title": "Opportunity Id",
+      "type": "string"
+    },
+    "pipeline_id": {
+      "format": "uuid",
+      "title": "Pipeline Id",
+      "type": "string"
+    },
+    "stage_id": {
+      "format": "uuid",
+      "title": "Stage Id",
+      "type": "string"
+    },
+    "value_micros": {
+      "title": "Value Micros",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "opportunity_id",
+    "contact_id",
+    "pipeline_id",
+    "stage_id",
+    "value_micros",
+    "currency"
+  ],
+  "title": "OpportunityCreated",
+  "type": "object"
+}

@@ -1,0 +1,16 @@
+**/.git
+**/node_modules
+**/.venv
+**/.next
+**/__pycache__
+**/.mypy_cache
+**/.ruff_cache
+**/.pytest_cache
+**/.hypothesis
+**/.coverage
+**/coverage
+.env
+.env.*
+!.env.example
+docs
+tasks

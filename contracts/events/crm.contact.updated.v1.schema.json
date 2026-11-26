@@ -1,0 +1,22 @@
+{
+  "properties": {
+    "changed": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Changed",
+      "type": "array"
+    },
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contact_id",
+    "changed"
+  ],
+  "title": "ContactUpdated",
+  "type": "object"
+}

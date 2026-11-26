@@ -1,0 +1,36 @@
+{
+  "properties": {
+    "channel": {
+      "title": "Channel",
+      "type": "string"
+    },
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "conversation_id": {
+      "format": "uuid",
+      "title": "Conversation Id",
+      "type": "string"
+    },
+    "message_id": {
+      "format": "uuid",
+      "title": "Message Id",
+      "type": "string"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "message_id",
+    "conversation_id",
+    "contact_id",
+    "channel",
+    "status"
+  ],
+  "title": "MessageStatusChanged",
+  "type": "object"
+}

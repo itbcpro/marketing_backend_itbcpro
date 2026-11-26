@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+.coverage
+htmlcov/
+*.egg-info/
+# Node
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+# Env and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# Django
+apps/api/media/
+apps/api/staticfiles/
+*.sqlite3
+# IDE and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+# Local tooling
+.claude/settings.local.json
+.next-dev.log
+.django-dev.log
+.celery-dev.log
+.celery-beat.log
+.django-8001.log
+.media/
+
+# Local state
+.pnpm-store/
+.devlogs/
+scratch_*.py
+.swc-cache/
+*.log
+*.err
+*.out

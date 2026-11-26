@@ -1,0 +1,50 @@
+[
+  {
+    "name": "bold typographic poster",
+    "brief": "Type is the hero: an oversized headline fills most of the frame on a solid brand colour field, with at most a small, cropped photographic or graphic accent. Strong contrast, tight leading, the key points as a clean stack beneath."
+  },
+  {
+    "name": "editorial photo with colour panel",
+    "brief": "A candid documentary photograph on one part of the frame and a solid colour panel on the rest carrying the headline and points, separated by a thin rule. Restrained, magazine-like, generous margins."
+  },
+  {
+    "name": "split screen",
+    "brief": "The frame split into two halves or thirds: one a real photograph, the other a flat colour block with huge numerals or a single large statement. A deliberate asymmetric split, not a centred layout."
+  },
+  {
+    "name": "flat vector illustration",
+    "brief": "A clean, modern flat vector illustration in a limited palette built from the brand colours: simple geometric people, devices and shapes telling the idea, with the text set in a bold sans on calm areas. No photographs."
+  },
+  {
+    "name": "isometric scene",
+    "brief": "A tidy isometric illustration with soft shadows: stacked blocks, screens, flows and small figures that visualise the idea, with the headline set large above and the points on clean labels. Light background, brand-coloured objects."
+  },
+  {
+    "name": "interface collage",
+    "brief": "Cropped, slightly tilted plain software interface panels (cards, charts, lists with abstract content, no readable text on them) layered with soft shadows over a brand colour background, with the headline and points as large type beside or over them."
+  },
+  {
+    "name": "duotone photo with oversized type",
+    "brief": "One striking photograph treated in a two-colour brand duotone, filling the frame, with an oversized headline overlaid in white or the lightest tone and the points in a tidy column. Cinematic, high contrast."
+  },
+  {
+    "name": "cutout collage",
+    "brief": "A person or object cut out from a photograph and placed over bold flat geometric shapes in brand colours, with a slightly paper-cut feel. The headline in heavy type that interacts with the shapes; points on small clean tags."
+  },
+  {
+    "name": "blueprint line drawing",
+    "brief": "A refined technical line drawing on a deep blue or off-white grid: diagrams, nodes and flows drawn in thin lines with a single accent colour, headline in a confident sans, points as annotated callouts. Precise and calm, never childish."
+  },
+  {
+    "name": "swiss grid minimal",
+    "brief": "A strict grid with a lot of white space: one huge numeral or word, a small photograph or shape, perfectly aligned text blocks, a single accent colour. Quiet, premium, very legible."
+  },
+  {
+    "name": "magazine cover",
+    "brief": "A business magazine cover feel: a large masthead-like headline over a full-bleed photograph, with the key points as short cover lines at the sides. Use only the given words: no masthead name, tag line, issue number or label of your own. Confident and editorial."
+  },
+  {
+    "name": "soft gradient cards",
+    "brief": "A smooth modern gradient background in brand colours with frosted-glass style cards holding the headline and each point, subtle depth, rounded corners. Contemporary software-brand look, calm and clean."
+  }
+]

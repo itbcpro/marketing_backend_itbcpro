@@ -1,0 +1,39 @@
+{
+  "properties": {
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "from_stage_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "From Stage Id"
+    },
+    "opportunity_id": {
+      "format": "uuid",
+      "title": "Opportunity Id",
+      "type": "string"
+    },
+    "to_stage_id": {
+      "format": "uuid",
+      "title": "To Stage Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "opportunity_id",
+    "contact_id",
+    "from_stage_id",
+    "to_stage_id"
+  ],
+  "title": "OpportunityStageChanged",
+  "type": "object"
+}

@@ -1,0 +1,33 @@
+{
+  "properties": {
+    "assigned_to": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Assigned To"
+    },
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "opportunity_id": {
+      "format": "uuid",
+      "title": "Opportunity Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "opportunity_id",
+    "contact_id",
+    "assigned_to"
+  ],
+  "title": "OpportunityAssigned",
+  "type": "object"
+}

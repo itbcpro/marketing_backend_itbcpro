@@ -1,0 +1,60 @@
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.12
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+        files: ^apps/api/
+      - id: ruff-format
+        files: ^apps/api/
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.28.0
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.2.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+
+  - repo: local
+    hooks:
+      - id: language-guard
+        name: English-only source guard
+        entry: python tools/check_language.py
+        language: system
+        pass_filenames: false
+      - id: i18n-catalogs
+        name: Translation catalogs are consistent
+        entry: python tools/check_i18n.py
+        language: system
+        pass_filenames: false
+        files: ^(locale/|apps/api/.*\.py$)
+      - id: import-contracts
+        name: Architectural import contracts
+        entry: bash -c "cd apps/api && uv run lint-imports"
+        language: system
+        pass_filenames: false
+        files: ^apps/api/.*\.py$
+      - id: openapi-drift
+        name: OpenAPI schema is current
+        entry: bash -c "cd apps/api && uv run python ../../tools/export_openapi.py --check"
+        language: system
+        pass_filenames: false
+        files: ^apps/api/.*\.py$

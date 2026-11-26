@@ -1,0 +1,26 @@
+{
+  "properties": {
+    "loser_id": {
+      "format": "uuid",
+      "title": "Loser Id",
+      "type": "string"
+    },
+    "merge_id": {
+      "format": "uuid",
+      "title": "Merge Id",
+      "type": "string"
+    },
+    "winner_id": {
+      "format": "uuid",
+      "title": "Winner Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "merge_id",
+    "winner_id",
+    "loser_id"
+  ],
+  "title": "ContactMerged",
+  "type": "object"
+}

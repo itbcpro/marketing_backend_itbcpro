@@ -1,0 +1,46 @@
+{
+  "properties": {
+    "amount_micros": {
+      "title": "Amount Micros",
+      "type": "integer"
+    },
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "currency": {
+      "title": "Currency",
+      "type": "string"
+    },
+    "kind": {
+      "title": "Kind",
+      "type": "string"
+    },
+    "opportunity_id": {
+      "format": "uuid",
+      "title": "Opportunity Id",
+      "type": "string"
+    },
+    "payment_id": {
+      "format": "uuid",
+      "title": "Payment Id",
+      "type": "string"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "payment_id",
+    "opportunity_id",
+    "contact_id",
+    "kind",
+    "status",
+    "amount_micros",
+    "currency"
+  ],
+  "title": "PaymentRecorded",
+  "type": "object"
+}

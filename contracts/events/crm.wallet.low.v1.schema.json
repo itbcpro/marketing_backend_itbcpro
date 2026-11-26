@@ -1,0 +1,18 @@
+{
+  "properties": {
+    "balance_micros": {
+      "title": "Balance Micros",
+      "type": "integer"
+    },
+    "currency": {
+      "title": "Currency",
+      "type": "string"
+    }
+  },
+  "required": [
+    "balance_micros",
+    "currency"
+  ],
+  "title": "WalletLow",
+  "type": "object"
+}

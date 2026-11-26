@@ -1,0 +1,43 @@
+{
+  "properties": {
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "from_status": {
+      "title": "From Status",
+      "type": "string"
+    },
+    "lost_reason_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lost Reason Id"
+    },
+    "opportunity_id": {
+      "format": "uuid",
+      "title": "Opportunity Id",
+      "type": "string"
+    },
+    "to_status": {
+      "title": "To Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "opportunity_id",
+    "contact_id",
+    "from_status",
+    "to_status",
+    "lost_reason_id"
+  ],
+  "title": "OpportunityStatusChanged",
+  "type": "object"
+}

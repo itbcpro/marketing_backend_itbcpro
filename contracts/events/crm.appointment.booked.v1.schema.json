@@ -1,0 +1,38 @@
+{
+  "properties": {
+    "appointment_id": {
+      "format": "uuid",
+      "title": "Appointment Id",
+      "type": "string"
+    },
+    "assigned_to": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Assigned To"
+    },
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "starts_at": {
+      "title": "Starts At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "appointment_id",
+    "contact_id",
+    "starts_at",
+    "assigned_to"
+  ],
+  "title": "AppointmentBooked",
+  "type": "object"
+}

@@ -1,0 +1,29 @@
+{
+  "properties": {
+    "field_id": {
+      "format": "uuid",
+      "title": "Field Id",
+      "type": "string"
+    },
+    "field_type": {
+      "title": "Field Type",
+      "type": "string"
+    },
+    "key": {
+      "title": "Key",
+      "type": "string"
+    },
+    "object_type": {
+      "title": "Object Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "field_id",
+    "object_type",
+    "key",
+    "field_type"
+  ],
+  "title": "FieldCreated",
+  "type": "object"
+}

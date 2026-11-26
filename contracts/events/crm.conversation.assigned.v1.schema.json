@@ -1,0 +1,33 @@
+{
+  "properties": {
+    "assigned_to": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Assigned To"
+    },
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "conversation_id": {
+      "format": "uuid",
+      "title": "Conversation Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "conversation_id",
+    "contact_id",
+    "assigned_to"
+  ],
+  "title": "ConversationAssigned",
+  "type": "object"
+}

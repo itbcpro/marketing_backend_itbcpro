@@ -1,0 +1,45 @@
+{
+  "properties": {
+    "ad_id": {
+      "title": "Ad Id",
+      "type": "string"
+    },
+    "campaign_id": {
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "form_id": {
+      "title": "Form Id",
+      "type": "string"
+    },
+    "lead_capture_id": {
+      "format": "uuid",
+      "title": "Lead Capture Id",
+      "type": "string"
+    },
+    "leadgen_id": {
+      "title": "Leadgen Id",
+      "type": "string"
+    },
+    "new_contact": {
+      "title": "New Contact",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "lead_capture_id",
+    "contact_id",
+    "leadgen_id",
+    "form_id",
+    "ad_id",
+    "campaign_id",
+    "new_contact"
+  ],
+  "title": "LeadCaptured",
+  "type": "object"
+}

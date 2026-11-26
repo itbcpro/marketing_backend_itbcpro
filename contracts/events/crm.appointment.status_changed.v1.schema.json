@@ -1,0 +1,25 @@
+{
+  "properties": {
+    "appointment_id": {
+      "format": "uuid",
+      "title": "Appointment Id",
+      "type": "string"
+    },
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "appointment_id",
+    "contact_id",
+    "status"
+  ],
+  "title": "AppointmentStatusChanged",
+  "type": "object"
+}

@@ -1,0 +1,81 @@
+name: CI
+
+# Pushes to main run these gates through deploy.yml (workflow_call), so they are not triggered twice.
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guards:
+    name: Repository guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - name: English-only source guard
+        run: python tools/check_language.py
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      postgres:
+        image: pgvector/pgvector:pg18
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app
+        ports: ["54329:5432"]
+        options: >-
+          --health-cmd "pg_isready -U app -d app" --health-interval 5s
+          --health-timeout 3s --health-retries 20
+      redis:
+        image: redis:8-alpine
+        ports: ["16379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Lint
+        run: uv run ruff check . && uv run ruff format --check .
+      - name: Types
+        run: uv run mypy .
+      - name: Import contracts
+        run: uv run lint-imports
+      - name: Migrations are up to date
+        run: uv run python manage.py makemigrations --check --dry-run
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.test
+      - name: Translation catalogs
+        run: uv run python ../../tools/check_i18n.py
+      - name: Event schema drift
+        run: uv run python ../../tools/export_event_schemas.py --check
+      - name: OpenAPI schema drift
+        run: uv run python ../../tools/export_openapi.py --check
+      - name: Tests
+        run: uv run pytest --cov
+      - name: Dependency audit
+        run: uv run pip-audit

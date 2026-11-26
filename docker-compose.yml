@@ -1,0 +1,112 @@
+name: itbcpro-marketing
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports:
+      - "54329:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "16379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  minio:
+    # MinIO stopped publishing images to Docker Hub and Quay; Chainguard still builds from source.
+    image: cgr.dev/chainguard/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio-dev-password
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  # Dev app containers. Opt in with:  docker compose --profile app up -d
+  # Source is bind-mounted, so runserver / next dev hot-reload as you edit on Windows.
+  api:
+    profiles: ["app"]
+    image: ghcr.io/astral-sh/uv:python3.14-bookworm-slim
+    working_dir: /app/apps/api
+    command:
+      - sh
+      - -c
+      - uv sync --frozen && uv run python manage.py migrate --noinput && uv run python manage.py runserver 0.0.0.0:8001
+    environment:
+      UV_PROJECT_ENVIRONMENT: /venv
+      UV_LINK_MODE: copy
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      APP_DATABASE_URL: postgres://app:app@postgres:5432/app
+      APP_REDIS_URL: redis://redis:6379/0
+      APP_ALLOWED_HOSTS: '["localhost","127.0.0.1","api"]'
+      APP_CSRF_TRUSTED_ORIGINS: '["http://localhost:3003"]'
+    ports:
+      - "8001:8001"
+    volumes:
+      - .:/app
+      - api_venv:/venv
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8001/healthz', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+      start_period: 60s
+
+  worker:
+    profiles: ["app"]
+    image: ghcr.io/astral-sh/uv:python3.14-bookworm-slim
+    working_dir: /app/apps/api
+    command:
+      - sh
+      - -c
+      - uv run celery -A config worker --pool=threads --concurrency=4 -Q default,agents,reports,media,low,ingest.social,publish.social -l info
+    environment:
+      UV_PROJECT_ENVIRONMENT: /venv
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      APP_DATABASE_URL: postgres://app:app@postgres:5432/app
+      APP_REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+      - api_venv:/venv
+    depends_on:
+      api:
+        condition: service_healthy
+
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  api_venv:

@@ -1,0 +1,11 @@
+/packages/api-client/openapi.json @Ahmadreza
+/contracts/ @Ahmadreza
+/docs/adr/ @Ahmadreza
+**/migrations/ @Ahmadreza
+/apps/api/core/tenancy.py @Ahmadreza
+/apps/api/core/migration_ops.py @Ahmadreza
+/apps/api/core/db_roles.py @Ahmadreza
+/apps/api/crm/sending/ @Ahmadreza
+/apps/api/identity/ @Ahmadreza
+/infra/ @Ahmadreza
+/.github/ @Ahmadreza

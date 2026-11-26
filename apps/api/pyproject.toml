@@ -1,0 +1,233 @@
+[project]
+name = "itbcpro-marketing-api"
+version = "0.1.0"
+description = "Agent-operated marketing platform API"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "django>=6.0,<6.1",
+    "django-ninja>=1.4",
+    "django-celery-beat>=2.8",
+    "celery[redis]>=5.6,<5.7",
+    "redis>=5",
+    "psycopg[binary,pool]>=3.2",
+    "pgvector>=0.4",
+    "pydantic>=2.11",
+    "pydantic-settings>=2.10",
+    "argon2-cffi>=25.1",
+    "cryptography>=45",
+    "structlog>=25",
+    "sentry-sdk>=2.30",
+    "uvicorn[standard]>=0.35",
+    "gunicorn>=23",
+    "whitenoise>=6.9",
+    "pyotp>=2.10.0",
+    "httpx>=0.28.1",
+    "prometheus-client>=0.26.0",
+    "opentelemetry-api>=1.45.0",
+    "opentelemetry-sdk>=1.45.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.45.0",
+    "opentelemetry-instrumentation-django>=0.66b0",
+    "opentelemetry-instrumentation-celery>=0.66b0",
+    "opentelemetry-instrumentation-psycopg>=0.66b0",
+    "opentelemetry-instrumentation-httpx>=0.66b0",
+    "opentelemetry-instrumentation-redis>=0.66b0",
+    "webauthn>=3.0.1",
+    "anthropic>=1.9.0",
+    "pillow>=12",
+    "imageio-ffmpeg>=0.6",
+    "pyjwt[crypto]>=2.10",
+    "phonenumbers>=9",
+    "dnspython>=2.7",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4",
+    "pytest-django>=4.11",
+    "pytest-cov>=6",
+    "pytest-xdist>=3.7",
+    "factory-boy>=3.3",
+    "hypothesis>=6.135",
+    "respx>=0.22",
+    "ruff>=0.12",
+    "mypy>=1.17",
+    "django-stubs[compatible-mypy]>=5.2",
+    "import-linter>=2.4",
+    "polib>=1.2",
+    "poethepoet>=0.36",
+    "pip-audit>=2.9",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+extend-exclude = ["**/migrations/*.py"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W", "I", "N", "UP", "B", "A", "C4", "C90", "DJ", "S", "SIM", "T20",
+    "PT", "RET", "RUF", "TID", "PL", "PERF", "DTZ", "ANN",
+]
+ignore = ["ANN401", "PLR0913", "PLR0917", "RUF012"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "S105", "S106", "PLR2004", "ANN", "PT011", "PT018", "SIM117", "PLC0415", "PLR0124", "S311", "E501", "PT019"]
+"conftest.py" = ["PLC0415", "S105"]
+"crm/**/tests/**" = ["S101", "PLR2004", "ANN", "PT011", "E501", "PLC0415"]
+"crm/ops/demo/**" = ["PLR2004", "S311", "DTZ011", "E501", "C408"]  # fake data for dev only
+"core/tests/test_tenancy.py" = ["S608"]  # the probe table name is a constant
+"conftest_contracts.py" = ["S101", "E501"]
+"manage.py" = ["PLC0415"]
+"core/apps.py" = ["PLC0415"]
+"crm/*/apps.py" = ["PLC0415"]
+"crm/lists/tasks.py" = ["PLC0415"]  # tasks and use cases import each other lazily
+"crm/lists/imports.py" = ["PLC0415"]
+"crm/lists/bulk.py" = ["PLC0415"]
+"ads/apps.py" = ["PLC0415"]
+"ads/google/client.py" = ["PLC0415"]
+"ads/google/actions.py" = ["E501"]  # the registration table is kept compact on purpose
+"ads/google/sync.py" = ["S608"]  # GAQL is built from constants and dates, not SQL
+"ads/tasks.py" = ["PLC0415"]
+"ads/openai/sessions.py" = ["PLC0415"]
+"ads/openai/launcher.py" = ["PLC0415"]
+"ads/openai/review.py" = ["PLC0415"]
+"ads/openai/variants.py" = ["PLC0415"]
+"ads/openai/hints.py" = ["PLC0415"]
+"ads/google/keywords.py" = ["PLC0415"]
+"ads/openai/actions.py" = ["PLC0415"]
+"social/tasks.py" = ["PLC0415"]
+"studio/tasks.py" = ["PLC0415"]
+"studio/apps.py" = ["PLC0415"]
+"studio/writer.py" = ["PLC0415"]  # lazy imports break the writer/automation/services cycle
+"studio/services.py" = ["PLC0415"]
+"studio/runs.py" = ["PLC0415"]
+"content/apps.py" = ["PLC0415"]
+"content/tests/fake_wordpress.py" = ["C901", "PLR0911"]
+"content/tests/fake_google.py" = ["PLR0911"]
+"content/tasks.py" = ["PLC0415"]
+"social/apps.py" = ["PLC0415"]
+"social/analysis.py" = ["PLC0415"]
+"social/composer.py" = ["PLC0415"]
+"social/drafts.py" = ["PLC0415"]
+"social/instagram/webhooks.py" = ["PLC0415"]
+"llm/apps.py" = ["PLC0415"]
+"connections/models.py" = ["S105"]
+"config/env.py" = ["S105"]
+"core/errors.py" = ["S105"]
+"core/metrics.py" = ["PLC0415"]
+"core/tasks.py" = ["PLC0415"]
+"identity/services.py" = ["PLC0415"]
+"actions/services.py" = ["PLC0415"]
+"memory/apps.py" = ["PLC0415"]
+"memory/reflection.py" = ["PLC0415"]
+"agents/runtime.py" = ["PLC0415", "C901", "PLR0911"]
+"agents/apps.py" = ["PLC0415"]
+"agents/command.py" = ["E501"]
+"agents/api.py" = ["PLC0415"]
+"notifications/apps.py" = ["PLC0415"]
+"llm/service.py" = ["PLC0415"]
+"config/settings/*.py" = ["F403", "F405"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+plugins = ["mypy_django_plugin.main"]
+exclude = ['migrations/', '/tests/', 'conftest\.py']
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"
+
+[[tool.mypy.overrides]]
+module = ["django_celery_beat.*", "pgvector.*", "polib.*", "celery.*", "kombu.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["*.tasks", "config.celery"]
+disallow_untyped_decorators = false
+
+[[tool.mypy.overrides]]
+module = ["core.tests.*", "identity.tests.*", "workspaces.tests.*", "connections.tests.*", "audit.tests.*", "conftest"]
+disallow_untyped_defs = false
+disallow_any_generics = false
+warn_return_any = false
+check_untyped_defs = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers --strict-config --reuse-db"
+testpaths = ["."]
+markers = [
+    "contract: adapter contract tests",
+    "integration: needs external services",
+]
+
+[tool.coverage.run]
+source = ["."]
+omit = ["*/migrations/*", "*/tests/*", "manage.py", "config/asgi.py", "config/wsgi.py"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+
+[tool.importlinter]
+root_packages = [
+    "core", "identity", "workspaces", "connections", "audit", "config", "crm",
+    "ads", "social", "studio", "content", "agents", "actions", "memory", "llm", "media",
+]
+include_external_packages = false
+
+[[tool.importlinter.contracts]]
+name = "Core is a leaf: it must not import feature apps"
+type = "forbidden"
+source_modules = ["core"]
+forbidden_modules = ["identity", "workspaces", "connections", "audit", "crm"]
+ignore_imports = ["core.tests.** -> **"]
+
+[[tool.importlinter.contracts]]
+name = "Audit does not depend on connections"
+type = "forbidden"
+source_modules = ["audit"]
+forbidden_modules = ["connections"]
+
+[[tool.importlinter.contracts]]
+name = "CRM does not depend on marketing feature apps (bridges are explicit, see CRM-2.3)"
+type = "forbidden"
+source_modules = ["crm"]
+forbidden_modules = ["ads", "studio", "content", "agents", "memory", "media"]
+ignore_imports = ["crm.**.tests.** -> **"]
+
+[[tool.importlinter.contracts]]
+name = "Marketing feature apps do not import CRM internals"
+type = "forbidden"
+source_modules = ["ads", "social", "studio", "content", "agents", "actions", "memory", "llm", "media"]
+forbidden_modules = ["crm"]
+
+[[tool.importlinter.contracts]]
+name = "Channel adapters are reached only through the send gateway"
+type = "forbidden"
+source_modules = [
+    "crm.contacts", "crm.fields", "crm.consent", "crm.activity", "crm.lists", "crm.inbox", "crm.events",
+    "crm.templates", "crm.campaigns", "crm.usage", "crm.pipelines", "crm.webhooks", "crm.notifications", "crm.sms", "crm.voice", "crm.meta", "crm.leads", "crm.workflows", "crm.reports", "crm.privacy", "crm.ops", "crm.plans", "crm.billing", "crm.tracking",
+]
+forbidden_modules = ["crm.channels"]
+ignore_imports = ["crm.**.tests.** -> **"]
+
+[tool.poe.tasks]
+lint = "ruff check ."
+format = "ruff format ."
+typecheck = "mypy ."
+test = "pytest"
+layers = "lint-imports"
+migrate = "python manage.py migrate"
+check-i18n = "python ../../tools/check_i18n.py"

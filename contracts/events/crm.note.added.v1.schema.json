@@ -1,0 +1,29 @@
+{
+  "properties": {
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "mentions": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Mentions",
+      "type": "array"
+    },
+    "note_id": {
+      "format": "uuid",
+      "title": "Note Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "note_id",
+    "contact_id",
+    "mentions"
+  ],
+  "title": "NoteAdded",
+  "type": "object"
+}

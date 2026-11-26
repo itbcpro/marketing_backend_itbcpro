@@ -1,0 +1,203 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: itbcpro-marketing\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "An unexpected error occurred."
+msgstr "An unexpected error occurred."
+
+msgid "The submitted data is not valid."
+msgstr "The submitted data is not valid."
+
+msgid "The requested resource was not found."
+msgstr "The requested resource was not found."
+
+msgid "You do not have permission to perform this action."
+msgstr "You do not have permission to perform this action."
+
+msgid "Authentication is required."
+msgstr "Authentication is required."
+
+msgid "The request conflicts with the current state."
+msgstr "The request conflicts with the current state."
+
+msgid "Too many requests. Please try again later."
+msgstr "Too many requests. Please try again later."
+
+msgid "A valid workspace must be selected."
+msgstr "A valid workspace must be selected."
+
+msgid "This idempotency key was already used with a different request."
+msgstr "This idempotency key was already used with a different request."
+
+msgid "A request with this idempotency key is still being processed."
+msgstr "A request with this idempotency key is still being processed."
+
+msgid "The email or password is incorrect."
+msgstr "The email or password is incorrect."
+
+msgid "The connection to the external platform has expired."
+msgstr "The connection to the external platform has expired."
+
+msgid "The external platform is rate limiting requests."
+msgstr "The external platform is rate limiting requests."
+
+msgid "The external platform rejected the content for policy reasons."
+msgstr "The external platform rejected the content for policy reasons."
+
+msgid "The external platform is temporarily unavailable."
+msgstr "The external platform is temporarily unavailable."
+
+msgid "The external platform rejected the request."
+msgstr "The external platform rejected the request."
+
+msgid "The request body is too large."
+msgstr "The request body is too large."
+
+msgid "A second authentication factor is required."
+msgstr "A second authentication factor is required."
+
+msgid "The verification code is not valid."
+msgstr "The verification code is not valid."
+
+msgid "Too many failed attempts. The account is temporarily locked."
+msgstr "Too many failed attempts. The account is temporarily locked."
+
+msgid "The link or token is invalid or has expired."
+msgstr "The link or token is invalid or has expired."
+
+msgid "The password does not meet the security requirements."
+msgstr "The password does not meet the security requirements."
+
+msgid "If you did not request this, you can safely ignore this email."
+msgstr "If you did not request this, you can safely ignore this email."
+
+msgid ""
+"Open the link below to accept the invitation. It expires in {days} days."
+msgstr ""
+"Open the link below to accept the invitation. It expires in {days} days."
+
+msgid "Open the link below to choose a new password. It expires in one hour."
+msgstr "Open the link below to choose a new password. It expires in one hour."
+
+msgid "Reset your password"
+msgstr "Reset your password"
+
+msgid "Several failed sign-in attempts were detected on your account."
+msgstr "Several failed sign-in attempts were detected on your account."
+
+msgid ""
+"Sign-in is paused for {minutes} minutes. If this was not you, reset your "
+"password."
+msgstr ""
+"Sign-in is paused for {minutes} minutes. If this was not you, reset your "
+"password."
+
+msgid "This password has appeared in a known data breach."
+msgstr "This password has appeared in a known data breach."
+
+msgid "We received a request to reset your password."
+msgstr "We received a request to reset your password."
+
+msgid "You have been invited to {workspace}"
+msgstr "You have been invited to {workspace}"
+
+msgid "Your account was temporarily locked"
+msgstr "Your account was temporarily locked"
+
+msgid "Your password must not appear in known data breaches."
+msgstr "Your password must not appear in known data breaches."
+
+msgid "{inviter} invited you to join {workspace} as {role}."
+msgstr "{inviter} invited you to join {workspace} as {role}."
+
+msgid "A safety rule blocked this action."
+msgstr "A safety rule blocked this action."
+
+msgid "All external changes are paused."
+msgstr "All external changes are paused."
+
+msgid "The AI response could not be understood."
+msgstr "The AI response could not be understood."
+
+msgid "The daily AI budget has been reached."
+msgstr "The daily AI budget has been reached."
+
+msgid "This action cannot be changed in its current state."
+msgstr "This action cannot be changed in its current state."
+
+msgid "Approval needed: {summary}"
+msgstr "Approval needed: {summary}"
+
+msgid "Open the approvals inbox to review, edit, approve or reject it."
+msgstr "Open the approvals inbox to review, edit, approve or reject it."
+
+msgid "Risk class: {risk}"
+msgstr "Risk class: {risk}"
+
+msgid "Summary: {summary}"
+msgstr "Summary: {summary}"
+
+msgid "{agent} prepared something in {workspace} that needs your decision."
+msgstr "{agent} prepared something in {workspace} that needs your decision."
+
+msgid "You have {count} unread notifications in {workspace}"
+msgstr "You have {count} unread notifications in {workspace}"
+
+msgid "Here is what needs your attention in {workspace}:"
+msgstr "Here is what needs your attention in {workspace}:"
+
+msgid "Open the CRM to see everything."
+msgstr "Open the CRM to see everything."
+
+msgid "A task was assigned to you"
+msgstr "A task was assigned to you"
+
+msgid "You were mentioned in a note"
+msgstr "You were mentioned in a note"
+
+msgid "A contact was assigned to you"
+msgstr "A contact was assigned to you"
+
+msgid "A deal was assigned to you"
+msgstr "A deal was assigned to you"
+
+msgid "A conversation was assigned to you"
+msgstr "A conversation was assigned to you"
+
+msgid "A customer replied"
+msgstr "A customer replied"
+
+msgid "{label}: {count}"
+msgstr "{label}: {count}"
+
+msgid "Call started"
+msgstr "Call started"
+
+msgid "Your plan does not allow more of this. Upgrade to continue."
+msgstr "Your plan does not allow more of this. Upgrade to continue."
+
+msgid "Confirm your email address"
+msgstr "Confirm your email address"
+
+msgid "Thanks for signing up. Confirm your email address to start using your account."
+msgstr "Thanks for signing up. Confirm your email address to start using your account."
+
+msgid "If you did not sign up, you can safely ignore this email."
+msgstr "If you did not sign up, you can safely ignore this email."
+
+msgid "You already have an account"
+msgstr "You already have an account"
+
+msgid "Someone tried to sign up with this email address, but an account already exists."
+msgstr "Someone tried to sign up with this email address, but an account already exists."
+
+msgid "You can sign in here:"
+msgstr "You can sign in here:"
+
+msgid "If it was not you, no action is needed."
+msgstr "If it was not you, no action is needed."

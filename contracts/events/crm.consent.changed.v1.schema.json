@@ -1,0 +1,34 @@
+{
+  "properties": {
+    "channel": {
+      "title": "Channel",
+      "type": "string"
+    },
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "purpose": {
+      "title": "Purpose",
+      "type": "string"
+    },
+    "source": {
+      "title": "Source",
+      "type": "string"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contact_id",
+    "channel",
+    "purpose",
+    "status",
+    "source"
+  ],
+  "title": "ConsentChanged",
+  "type": "object"
+}

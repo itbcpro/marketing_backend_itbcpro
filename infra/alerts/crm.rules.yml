@@ -1,0 +1,59 @@
+# Prometheus alert rules for the CRM. A test (crm/ops/tests/test_ops.py) checks that every metric
+# named here exists, so a renamed counter cannot silently disable an alert.
+groups:
+  - name: crm
+    rules:
+      - alert: CrmEventsNotProcessed
+        expr: crm_outbox_oldest_pending_seconds > 300
+        for: 5m
+        labels: {severity: page}
+        annotations:
+          summary: Events are waiting for more than five minutes
+          description: The outbox dispatcher or a worker is down. Timelines, notifications and automations lag.
+
+      - alert: CrmAutomationRunsOverdue
+        expr: crm_overdue_enrollments > 10
+        for: 10m
+        labels: {severity: warn}
+        annotations:
+          summary: Automation runs are past their wake time
+          description: The wake job or the workers are not keeping up.
+
+      - alert: CrmDeadLetters
+        expr: crm_dead_letters_open > 0
+        for: 15m
+        labels: {severity: warn}
+        annotations:
+          summary: Tasks gave up and are waiting for a person
+
+      - alert: CrmSendFailures
+        expr: |
+          sum by (channel) (rate(crm_messages_total{outcome="failed"}[15m]))
+            / sum by (channel) (rate(crm_messages_total[15m])) > 0.2
+          and sum by (channel) (rate(crm_messages_total[15m])) > 0.01
+        for: 15m
+        labels: {severity: warn}
+        annotations:
+          summary: More than a fifth of messages on a channel are failing
+
+      - alert: CrmWebhookSignatureFailures
+        expr: sum by (source) (rate(crm_webhooks_total{outcome="bad_signature"}[10m])) > 0.1
+        for: 10m
+        labels: {severity: warn}
+        annotations:
+          summary: A webhook source is sending requests that fail signature checks
+          description: A rotated secret, a wrong public address, or someone probing.
+
+      - alert: CrmWebhooksSilent
+        expr: sum by (source) (increase(crm_webhooks_total{outcome="ok"}[24h])) == 0 and sum by (source) (increase(crm_webhooks_total[7d])) > 0
+        for: 1h
+        labels: {severity: info}
+        annotations:
+          summary: A webhook source that used to deliver has been quiet for a day
+
+      - alert: CrmAutomationStepsFailing
+        expr: sum by (step_type) (rate(crm_workflow_steps_total{outcome="failed"}[30m])) > 0
+        for: 30m
+        labels: {severity: warn}
+        annotations:
+          summary: Automation steps are failing for good

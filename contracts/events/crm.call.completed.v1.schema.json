@@ -1,0 +1,30 @@
+{
+  "properties": {
+    "call_id": {
+      "format": "uuid",
+      "title": "Call Id",
+      "type": "string"
+    },
+    "contact_id": {
+      "format": "uuid",
+      "title": "Contact Id",
+      "type": "string"
+    },
+    "direction": {
+      "title": "Direction",
+      "type": "string"
+    },
+    "duration_seconds": {
+      "title": "Duration Seconds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "call_id",
+    "contact_id",
+    "direction",
+    "duration_seconds"
+  ],
+  "title": "CallCompleted",
+  "type": "object"
+}
