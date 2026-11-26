@@ -3,8 +3,9 @@ name: Deploy
 # Push to main: run every CI gate, build the API image, ship it to the server.
 # The web image is built and shipped by the web repository (marketing_front_itbcpro).
 # Configuration lives in GitHub, never in the repository (see docs/deploy.md):
-#   secrets:   DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS, DEPLOY_ENV
-#   variables: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_PORT (optional)
+#   secrets:   DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS, POSTGRES_PASSWORD, REDIS_PASSWORD, APP_SECRET_KEY,
+#              APP_VAULT_MASTER_KEYS, APP_JWT_SIGNING_KEYS, DEPLOY_EXTRA_ENV (optional, provider keys)
+#   variables: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_PORT (optional), DEPLOY_CONFIG (all non-secret settings)
 on:
   push:
     branches: [main]
@@ -102,14 +103,32 @@ jobs:
           persist-credentials: false
       - name: Prepare deploy bundle
         env:
-          DEPLOY_ENV: ${{ secrets.DEPLOY_ENV }}
+          DEPLOY_CONFIG: ${{ vars.DEPLOY_CONFIG }}
+          DEPLOY_EXTRA_ENV: ${{ secrets.DEPLOY_EXTRA_ENV }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          APP_VAULT_MASTER_KEYS: ${{ secrets.APP_VAULT_MASTER_KEYS }}
+          APP_JWT_SIGNING_KEYS: ${{ secrets.APP_JWT_SIGNING_KEYS }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BUILT_API: ${{ needs.build-api.result == 'success' }}
         run: |
           set -euo pipefail
           umask 077
           mkdir bundle
-          printf '%s\n' "$DEPLOY_ENV" > bundle/.env
+          for name in DEPLOY_CONFIG POSTGRES_PASSWORD REDIS_PASSWORD APP_SECRET_KEY APP_VAULT_MASTER_KEYS APP_JWT_SIGNING_KEYS; do
+            if [ -z "${!name}" ]; then echo "::error::$name is not set"; exit 1; fi
+          done
+          # Later lines win: the dedicated secrets override anything in the free-form blocks.
+          {
+            printf '%s\n' "$DEPLOY_CONFIG"
+            printf '%s\n' "$DEPLOY_EXTRA_ENV"
+            printf 'POSTGRES_PASSWORD=%s\n' "$POSTGRES_PASSWORD"
+            printf 'REDIS_PASSWORD=%s\n' "$REDIS_PASSWORD"
+            printf 'APP_SECRET_KEY=%s\n' "$APP_SECRET_KEY"
+            printf 'APP_VAULT_MASTER_KEYS=%s\n' "$APP_VAULT_MASTER_KEYS"
+            printf 'APP_JWT_SIGNING_KEYS=%s\n' "$APP_JWT_SIGNING_KEYS"
+          } > bundle/.env
           printf '%s' "$GHCR_TOKEN" > bundle/ghcr_token
           cp docker-compose.prod.yml bundle/
           repo="ghcr.io/${GITHUB_REPOSITORY,,}"

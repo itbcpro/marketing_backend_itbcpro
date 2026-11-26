@@ -38,12 +38,14 @@ variables go into both repos (or an organization secret shared with both).
 | --- | --- | --- | --- |
 | secret | `DEPLOY_SSH_KEY` | both | private half of the CI key pair (ed25519) |
 | secret | `DEPLOY_KNOWN_HOSTS` | both | `ssh-keyscan -t ed25519 <host>` output, verified against the server |
-| secret | `DEPLOY_ENV` | backend only | the complete env file, based on `infra/deploy/env.prod.example` |
+| variable | `DEPLOY_CONFIG` | backend only | all non-secret settings (visible and editable), see `infra/deploy/env.prod.example` |
+| secret | `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `APP_SECRET_KEY`, `APP_VAULT_MASTER_KEYS`, `APP_JWT_SIGNING_KEYS` | backend only | values printed by `infra/deploy/generate_env.py`, one secret each |
+| secret | `DEPLOY_EXTRA_ENV` | backend only | optional `KEY=value` lines for provider keys (Anthropic, Meta, Google) |
 | variable | `DEPLOY_HOST`, `DEPLOY_USER` | both | server address, `deploy` |
 | variable | `DEPLOY_SSH_PORT` | both | optional, default 22 |
 
 Generate the cryptographic values with `infra/deploy/generate_env.py`, merge them into the template, paste the file into
-`DEPLOY_ENV`, delete the local copy. To change configuration later, edit the secret and re-run the backend Deploy
+the secrets above, delete the local copy. To change a setting later, edit the `DEPLOY_CONFIG` variable and re-run the backend Deploy
 workflow. Organization repos also need the `GITLEAKS_LICENSE` secret for the secret-scan action.
 
 ## One-time server preparation
