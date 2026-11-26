@@ -25,6 +25,8 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app/apps/api
 
 COPY --from=build --chown=app:app /app /app
+# Upload directory: a new named volume mounted here inherits this ownership.
+RUN mkdir -p /data/media && chown app:app /data/media
 USER app
 EXPOSE 8000
 

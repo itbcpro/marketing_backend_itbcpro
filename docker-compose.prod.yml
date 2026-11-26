@@ -45,6 +45,8 @@ services:
   redis:
     <<: *hardening
     image: ${REDIS_IMAGE:?set REDIS_IMAGE}
+    # The custom command bypasses the image entrypoint, so start as the unprivileged redis user directly.
+    user: redis
     command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$$REDIS_PASSWORD\""]
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?}
