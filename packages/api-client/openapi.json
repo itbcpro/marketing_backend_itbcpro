@@ -31318,6 +31318,61 @@
         ]
       }
     },
+    "/api/v1/crm/inbox/contacts/{contact_id}/send": {
+      "post": {
+        "description": "Write to a contact who may have no conversation yet; the first send starts one.\n\nGoes through the same gateway as a reply, so consent, suppression, the sender's own mailbox and\nits daily limit all apply. A blocked message is stored and returned with its reason (201).",
+        "operationId": "crm_inbox_send_to_contact",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "contact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Contact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Send To Contact",
+        "tags": [
+          "crm-sending"
+        ]
+      }
+    },
     "/api/v1/crm/inbox/conversations": {
       "get": {
         "operationId": "crm_inbox_list",

@@ -356,3 +356,56 @@ def test_api_permissions_scope_and_tenants(workspace, owner, person, adapters):
         == 404
     )
     assert adapters["email"].sent == []
+
+
+def test_api_writes_to_a_contact_with_no_conversation_yet(workspace, owner, person, adapters):
+    admin = Client()
+    admin.force_login(owner)
+    assert not Message.objects.for_workspace(workspace.pk).exists()
+    sent = api(
+        admin,
+        "post",
+        f"/inbox/contacts/{person.pk}/send",
+        workspace,
+        {"channel": "email", "body": "Hello first time", "subject": "Hi"},
+    )
+    assert sent.status_code == 201 and sent.json()["blocked"] is False
+    message = Message.objects.get(pk=sent.json()["message_id"])
+    assert message.status == "sent" and message.conversation.contact_id == person.pk
+    assert adapters["email"].sent[0].to == "ada@example.com"
+    blocked = api(
+        admin,
+        "post",
+        f"/inbox/contacts/{person.pk}/send",
+        workspace,
+        {"channel": "instagram", "body": "Hi"},
+    )
+    assert blocked.status_code == 201 and blocked.json()["reason"] == "no_address"
+
+
+def test_api_write_to_contact_checks_permission_scope_and_tenant(
+    workspace, owner, person, adapters
+):
+    body = {"channel": "email", "body": "Hi"}
+    viewer = Client()
+    viewer.force_login(make_user("v@example.com", workspace, Role.VIEWER))
+    assert (
+        api(viewer, "post", f"/inbox/contacts/{person.pk}/send", workspace, body).status_code == 403
+    )
+    other = create_workspace(name="Other Co", owner=owner)
+    admin = Client()
+    admin.force_login(owner)
+    assert api(admin, "post", f"/inbox/contacts/{person.pk}/send", other, body).status_code == 404
+    editor = make_user("ed@example.com", workspace, Role.EDITOR)
+    from workspaces import services as workspace_services
+    from workspaces.models import RecordScope
+
+    workspace_services.set_record_scope(
+        workspace=workspace, user=editor, scope=RecordScope.ASSIGNED, changed_by=owner
+    )
+    scoped = Client()
+    scoped.force_login(editor)
+    assert (
+        api(scoped, "post", f"/inbox/contacts/{person.pk}/send", workspace, body).status_code == 404
+    )
+    assert adapters["email"].sent == []

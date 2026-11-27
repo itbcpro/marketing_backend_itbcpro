@@ -11,6 +11,7 @@ from ninja import Router, Schema, Status
 from audit.actors import Actor
 from core.errors import NotFoundError
 from crm.consent.models import Purpose
+from crm.contacts import services as contacts
 from crm.inbox.selectors import visible
 from crm.sending import dns_health, domains, registry, suppression
 from crm.sending.dns import SystemResolver
@@ -56,6 +57,40 @@ def send_reply(
         workspace_id=membership.workspace_id,
         actor=Actor.human(membership.user_id),
         contact_id=conversation.contact_id,
+        **payload.model_dump(),
+    )
+    message = outcome.message
+    return Status(
+        201,
+        SendOut(
+            message_id=message.pk,
+            status=message.status,
+            blocked=outcome.blocked,
+            reason=outcome.reason,
+            created_at=message.created_at,
+        ),
+    )
+
+
+@router.post(
+    "/inbox/contacts/{contact_id}/send",
+    response={201: SendOut},
+    operation_id="crm_inbox_send_to_contact",
+)
+def send_to_contact(
+    request: HttpRequest, contact_id: uuid.UUID, payload: SendIn
+) -> Status[SendOut]:
+    """Write to a contact who may have no conversation yet; the first send starts one.
+
+    Goes through the same gateway as a reply, so consent, suppression, the sender's own mailbox and
+    its daily limit all apply. A blocked message is stored and returned with its reason (201).
+    """
+    membership = resolve_workspace(request, Permission.CRM_SEND)
+    contact = contacts.get_visible_contact(membership, contact_id)
+    outcome = send(
+        workspace_id=membership.workspace_id,
+        actor=Actor.human(membership.user_id),
+        contact_id=contact.pk,
         **payload.model_dump(),
     )
     message = outcome.message
