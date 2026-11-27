@@ -11267,6 +11267,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Kind */
+            kind: string;
             /** Mapping */
             mapping: {
                 [key: string]: string;
@@ -11279,6 +11281,8 @@ export interface components {
             processed_rows: number;
             /** Status */
             status: string;
+            /** Targets */
+            targets: string[];
             /** Total Rows */
             total_rows: number;
             /** Updated Count */
@@ -11306,6 +11310,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Kind */
+            kind: string;
             /** Mapping */
             mapping: {
                 [key: string]: string;
@@ -20558,7 +20564,9 @@ export interface operations {
     };
     crm_imports_create: {
         parameters: {
-            query?: never;
+            query?: {
+                kind?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;

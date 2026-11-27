@@ -8782,6 +8782,10 @@
             "title": "Id",
             "type": "string"
           },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
           "mapping": {
             "additionalProperties": {
               "type": "string"
@@ -8807,6 +8811,13 @@
             "title": "Status",
             "type": "string"
           },
+          "targets": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Targets",
+            "type": "array"
+          },
           "total_rows": {
             "title": "Total Rows",
             "type": "integer"
@@ -8818,6 +8829,7 @@
         },
         "required": [
           "id",
+          "kind",
           "file_name",
           "status",
           "headers",
@@ -8829,7 +8841,8 @@
           "failed_count",
           "created_at",
           "finished_at",
-          "preview"
+          "preview",
+          "targets"
         ],
         "title": "ImportCreatedOut",
         "type": "object"
@@ -8877,6 +8890,10 @@
             "title": "Id",
             "type": "string"
           },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
           "mapping": {
             "additionalProperties": {
               "type": "string"
@@ -8903,6 +8920,7 @@
         },
         "required": [
           "id",
+          "kind",
           "file_name",
           "status",
           "headers",
@@ -29997,7 +30015,18 @@
     "/api/v1/crm/imports": {
       "post": {
         "operationId": "crm_imports_create",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "default": "contacts",
+              "title": "Kind",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
