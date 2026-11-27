@@ -17041,6 +17041,196 @@
         "title": "SrSyncIn",
         "type": "object"
       },
+      "StaffCreateIn": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "full_name": {
+            "default": "",
+            "title": "Full Name",
+            "type": "string"
+          },
+          "record_scope": {
+            "default": "all",
+            "title": "Record Scope",
+            "type": "string"
+          },
+          "role": {
+            "default": "viewer",
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "StaffCreateIn",
+        "type": "object"
+      },
+      "StaffCreatedOut": {
+        "properties": {
+          "invited": {
+            "title": "Invited",
+            "type": "boolean"
+          },
+          "staff": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StaffOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "temporary_password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temporary Password"
+          }
+        },
+        "required": [
+          "staff",
+          "invited",
+          "temporary_password"
+        ],
+        "title": "StaffCreatedOut",
+        "type": "object"
+      },
+      "StaffOut": {
+        "properties": {
+          "can_manage": {
+            "title": "Can Manage",
+            "type": "boolean"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "is_you": {
+            "title": "Is You",
+            "type": "boolean"
+          },
+          "last_login": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Login"
+          },
+          "mfa_enabled": {
+            "title": "Mfa Enabled",
+            "type": "boolean"
+          },
+          "must_change_password": {
+            "title": "Must Change Password",
+            "type": "boolean"
+          },
+          "record_scope": {
+            "title": "Record Scope",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "full_name",
+          "role",
+          "record_scope",
+          "mfa_enabled",
+          "must_change_password",
+          "last_login",
+          "is_you",
+          "can_manage"
+        ],
+        "title": "StaffOut",
+        "type": "object"
+      },
+      "StaffRoleOut": {
+        "properties": {
+          "assignable": {
+            "title": "Assignable",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Permissions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "assignable",
+          "permissions"
+        ],
+        "title": "StaffRoleOut",
+        "type": "object"
+      },
+      "StaffUpdateIn": {
+        "properties": {
+          "record_scope": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Record Scope"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          }
+        },
+        "title": "StaffUpdateIn",
+        "type": "object"
+      },
       "StageChangeOut": {
         "properties": {
           "at": {
@@ -19490,6 +19680,19 @@
           "reason"
         ],
         "title": "TemplateSendOut",
+        "type": "object"
+      },
+      "TemporaryPasswordOut": {
+        "properties": {
+          "temporary_password": {
+            "title": "Temporary Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "temporary_password"
+        ],
+        "title": "TemporaryPasswordOut",
         "type": "object"
       },
       "TenantActiveIn": {
@@ -41276,6 +41479,291 @@
         "summary": "Public Media File",
         "tags": [
           "instagram-public"
+        ]
+      }
+    },
+    "/api/v1/staff/": {
+      "get": {
+        "operationId": "staff_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StaffOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "List Staff",
+        "tags": [
+          "staff"
+        ]
+      },
+      "post": {
+        "operationId": "staff_create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffCreatedOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Create Staff",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/api/v1/staff/roles": {
+      "get": {
+        "operationId": "staff_roles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StaffRoleOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "List Roles",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/api/v1/staff/{user_id}": {
+      "delete": {
+        "operationId": "staff_remove",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Remove Staff",
+        "tags": [
+          "staff"
+        ]
+      },
+      "patch": {
+        "operationId": "staff_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffUpdateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Update Staff",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/api/v1/staff/{user_id}/reset-mfa": {
+      "post": {
+        "operationId": "staff_reset_mfa",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Reset Mfa",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/api/v1/staff/{user_id}/reset-password": {
+      "post": {
+        "operationId": "staff_reset_password",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemporaryPasswordOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Reset Password",
+        "tags": [
+          "staff"
         ]
       }
     },

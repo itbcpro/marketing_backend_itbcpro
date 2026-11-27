@@ -73,5 +73,17 @@ ROLE_PERMISSIONS: dict[str, frozenset[Permission]] = {
 }
 
 
+# Who may hand out and manage which roles. Owners exist only through platform administration, and
+# nobody can raise anyone to a role they could not manage themselves (no privilege escalation).
+MANAGEABLE_ROLES: dict[str, frozenset[str]] = {
+    Role.OWNER: frozenset({Role.ADMIN, Role.APPROVER, Role.EDITOR, Role.ANALYST, Role.VIEWER}),
+    Role.ADMIN: frozenset({Role.APPROVER, Role.EDITOR, Role.ANALYST, Role.VIEWER}),
+}
+
+
+def manageable_roles(role: str) -> frozenset[str]:
+    return MANAGEABLE_ROLES.get(role, frozenset())
+
+
 def role_allows(role: str, permission: Permission) -> bool:
     return permission in ROLE_PERMISSIONS.get(role, frozenset())

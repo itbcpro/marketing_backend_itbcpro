@@ -5,11 +5,9 @@ A new owner gets a random temporary password that must be changed at the first s
 returned once and never stored in clear text or written to the audit log.
 """
 
-import secrets
 import uuid
 from dataclasses import dataclass
 
-from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email
 from django.db import transaction
@@ -25,8 +23,6 @@ from workspaces.models import Membership, Organization, Role, Workspace, unique_
 
 NAME_LIMIT = 200
 SLUG_LIMIT = 80
-PASSWORD_BYTES = 18
-PASSWORD_ATTEMPTS = 5
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,24 +65,13 @@ def _workspace_slug(requested: str | None, name: str) -> str:
     return base
 
 
-def _temporary_password(user: User) -> str:
-    for _ in range(PASSWORD_ATTEMPTS):
-        candidate = secrets.token_urlsafe(PASSWORD_BYTES)
-        try:
-            validate_password(candidate, user)
-        except DjangoValidationError:
-            continue
-        return candidate
-    raise ValidationFailedError("could not generate a password")  # pragma: no cover
-
-
 def _ensure_owner(*, workspace: Workspace, email: str, full_name: str) -> OwnerResult:
     """Make the address an owner of the workspace, creating the account when it is new."""
     user = User.objects.filter(email=email).first()
     password: str | None = None
     if user is None:
         user = User(email=email, full_name=full_name[:NAME_LIMIT], must_change_password=True)
-        password = _temporary_password(user)
+        password = identity_services.new_temporary_password(user)
         user.set_password(password)
         user.save()
     Membership.objects.update_or_create(

@@ -1,5 +1,6 @@
 """Authentication use cases: sign-in with lockout and MFA, password reset and change."""
 
+import secrets
 import time
 from dataclasses import dataclass
 from datetime import timedelta
@@ -238,6 +239,43 @@ def _apply_new_password(
     sessions.revoke_all_sessions(user, keep=keep)
     jwt_service.revoke_user(user)
     record_event(action=action, actor=Actor.human(user.pk), target_type="user", target_id=user.pk)
+
+
+TEMP_PASSWORD_BYTES = 18
+TEMP_PASSWORD_ATTEMPTS = 5
+
+
+def new_temporary_password(user: User) -> str:
+    """A random password that passes the password policy. The caller sets it and flags the user."""
+    for _ in range(TEMP_PASSWORD_ATTEMPTS):
+        candidate = secrets.token_urlsafe(TEMP_PASSWORD_BYTES)
+        try:
+            validate_password(candidate, user)
+        except DjangoValidationError:
+            continue
+        return candidate
+    raise ValidationFailedError("could not generate a password")  # pragma: no cover
+
+
+def set_temporary_password(user: User, *, by: User) -> str:
+    """Give the user a new random password they must change; every session of theirs ends."""
+    password = new_temporary_password(user)
+    with transaction.atomic():
+        user.set_password(password)
+        user.must_change_password = True
+        user.password_changed_at = None
+        user.failed_login_count = 0
+        user.locked_until = None
+        user.save()
+        sessions.revoke_all_sessions(user)
+        jwt_service.revoke_user(user)
+        record_event(
+            action="auth.password_reset_by_admin",
+            actor=Actor.human(by.pk),
+            target_type="user",
+            target_id=user.pk,
+        )
+    return password
 
 
 def has_second_factor(user: User) -> bool:
