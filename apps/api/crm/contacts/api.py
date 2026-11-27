@@ -10,7 +10,7 @@ from django.http import HttpRequest
 from ninja import Query, Router, Schema, Status
 
 from audit.actors import Actor
-from core.api.pagination import DEFAULT_LIMIT, Page, paginate
+from core.api.pagination import DEFAULT_LIMIT, MAX_LIMIT, Page, paginate
 from core.errors import PermissionDeniedError, ValidationFailedError
 from crm.contacts import bulk, selectors, services
 from crm.contacts.models import Company, MatchOrder
@@ -64,6 +64,16 @@ class ContactQuery(Schema):
     created_before: str | None = None
     tag: str | None = None
     deleted: bool = False
+    cursor: str | None = None
+    limit: int = DEFAULT_LIMIT
+
+
+class ContactSearchIn(Schema):
+    """A list view: any filter of the contact filter language, a text search and a sort."""
+
+    filter: dict[str, Any] | None = None
+    q: str | None = None
+    sort: str = selectors.DEFAULT_SORT
     cursor: str | None = None
     limit: int = DEFAULT_LIMIT
 
@@ -177,6 +187,21 @@ def list_contacts(request: HttpRequest, query: Query[ContactQuery]) -> Page[Cont
     rows = selectors.filtered(membership, params, query.q, deleted=query.deleted)
     page, next_cursor = paginate(rows, cursor=query.cursor, limit=query.limit)
     items = selectors.serialise(membership.workspace_id, page)
+    return Page[ContactOut](items=[ContactOut(**i) for i in items], next_cursor=next_cursor)
+
+
+@router.post("/contacts/search", response=Page[ContactOut], operation_id="crm_contacts_search")
+def search_contacts(request: HttpRequest, payload: ContactSearchIn) -> Page[ContactOut]:
+    membership = resolve_workspace(request, Permission.CRM_VIEW)
+    try:
+        offset = int(payload.cursor or 0)
+    except ValueError as exc:
+        raise ValidationFailedError("invalid cursor", errors={"cursor": "invalid_value"}) from exc
+    rows = selectors.query(membership, spec=payload.filter, text=payload.q)
+    limit = max(1, min(payload.limit, MAX_LIMIT))
+    page, following = selectors.sorted_page(rows, sort=payload.sort, offset=offset, limit=limit)
+    items = selectors.serialise(membership.workspace_id, page)
+    next_cursor = None if following is None else str(following)
     return Page[ContactOut](items=[ContactOut(**i) for i in items], next_cursor=next_cursor)
 
 

@@ -7,9 +7,11 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any
 
-from django.db.models import Q, QuerySet
+from django.db.models import F, Q, QuerySet
+from django.db.models.functions import Lower
 
 from core.api.filtering import FilterSpec, apply_filters
+from core.errors import ValidationFailedError
 from crm.contacts import tags as tag_service
 from crm.contacts.filters import compile_filter
 from crm.contacts.models import Contact, ContactFollower, ContactIdentity, IdentityChannel
@@ -70,6 +72,30 @@ def query(
     rows = apply_filters(visible_contacts(membership, deleted=deleted), params or {}, FILTERS)
     rows = rows.filter(compile_filter(membership.workspace_id, spec))
     return search(rows, text).distinct()
+
+
+SORTS = {
+    "newest": ("-created_at", "-pk"),
+    "oldest": ("created_at", "pk"),
+    "name": (Lower("first_name"), Lower("last_name"), "pk"),
+    "last_activity": (F("last_activity_at").desc(nulls_last=True), "pk"),
+}
+DEFAULT_SORT = "newest"
+
+
+def sorted_page(
+    rows: QuerySet[Contact], *, sort: str, offset: int, limit: int
+) -> tuple[list[Contact], int | None]:
+    """One page in the chosen order, and the offset of the next page (None at the end).
+
+    Ordering by something other than creation cannot use the id cursor, so this pages by offset.
+    """
+    if sort not in SORTS:
+        raise ValidationFailedError("invalid sort", errors={"sort": "invalid_value"})
+    ordered = rows.order_by(*SORTS[sort])
+    found = list(ordered[offset : offset + limit + 1])
+    more = len(found) > limit
+    return found[:limit], offset + limit if more else None
 
 
 def get_visible(membership: Membership, contact_id: uuid.UUID) -> Contact | None:
