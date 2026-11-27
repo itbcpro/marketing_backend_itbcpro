@@ -44,3 +44,5 @@ class Block:
     SPEND_CAP = "spend_cap_reached"
     RATE_LIMITED = "rate_limited"
     INVALID_BODY = "invalid_body"
+    MAILBOX_UNAVAILABLE = "mailbox_unavailable"
+    MAILBOX_LIMIT = "mailbox_limit"

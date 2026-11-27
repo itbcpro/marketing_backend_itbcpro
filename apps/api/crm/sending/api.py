@@ -12,7 +12,8 @@ from audit.actors import Actor
 from core.errors import NotFoundError
 from crm.consent.models import Purpose
 from crm.inbox.selectors import visible
-from crm.sending import domains, registry, suppression
+from crm.sending import dns_health, domains, registry, suppression
+from crm.sending.dns import SystemResolver
 from crm.sending.gateway import send
 from crm.sending.models import DomainRecord, SendingDomain, Suppression
 from identity.authentication import api_auth
@@ -202,3 +203,38 @@ def remove_domain(request: HttpRequest, domain_id: uuid.UUID) -> Status[None]:
         domain_id=domain_id,
     )
     return Status(204, None)
+
+
+# ---- mail authentication health ----------------------------------------------------------
+
+
+class DnsHealthIn(Schema):
+    domain: str
+    selectors: list[str] = []
+
+
+class FindingOut(Schema):
+    check: str
+    severity: str
+    code: str
+    params: dict[str, str]
+    observed: str
+
+
+class DnsHealthOut(Schema):
+    domain: str
+    status: str
+    findings: list[FindingOut]
+
+
+@router.post("/email/dns-health", response=DnsHealthOut, operation_id="crm_email_dns_health")
+def dns_health_check(request: HttpRequest, payload: DnsHealthIn) -> DnsHealthOut:
+    """Judge the SPF, DKIM and DMARC a domain publishes, with a code and fix hint per problem."""
+    resolve_workspace(request, Permission.CRM_MANAGE_CHANNELS)
+    domain = domains.normalise(payload.domain)
+    report = dns_health.check_domain(domain, SystemResolver(), payload.selectors)
+    return DnsHealthOut(
+        domain=domain,
+        status=report.status,
+        findings=[FindingOut.model_validate(f, from_attributes=True) for f in report.findings],
+    )

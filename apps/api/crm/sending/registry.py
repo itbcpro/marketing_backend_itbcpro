@@ -25,5 +25,18 @@ def adapter_for(channel: str) -> ChannelAdapter | None:
     return factory() if factory else None
 
 
+_account_factories: dict[str, Callable[[object], ChannelAdapter]] = {}
+
+
+def register_account_adapter(provider: str, factory: Callable[[object], ChannelAdapter]) -> None:
+    """Adapters that depend on which connected account sends (a person's own mailbox)."""
+    _account_factories[provider] = factory
+
+
+def adapter_for_account(provider: str, account: object) -> ChannelAdapter | None:
+    factory = _account_factories.get(provider)
+    return factory(account) if factory else None
+
+
 def channels() -> list[str]:
     return sorted(_factories)

@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "crm.templates",
     "crm.pipelines",
     "crm.webhooks",
+    "crm.mailboxes",
     "crm.notifications",
     "crm.sms",
     "crm.voice",
@@ -217,6 +218,18 @@ CRM_CAMPAIGN_BATCH_INTERVAL = env.crm_campaign_batch_interval
 CRM_CAMPAIGN_DEFER_SECONDS = env.crm_campaign_defer_seconds
 CRM_EMAIL_DNS_PROFILE = env.crm_email_dns_profile
 CRM_DNS_TIMEOUT_SECONDS = env.crm_dns_timeout_seconds
+CRM_GOOGLE_CLIENT_ID = env.crm_google_client_id
+CRM_GOOGLE_CLIENT_SECRET = env.crm_google_client_secret.get_secret_value()
+CRM_MICROSOFT_CLIENT_ID = env.crm_microsoft_client_id
+CRM_MICROSOFT_CLIENT_SECRET = env.crm_microsoft_client_secret.get_secret_value()
+CRM_MICROSOFT_TENANT = env.crm_microsoft_tenant
+CRM_MAILBOX_REDIRECT_URI = env.crm_mailbox_redirect_uri
+CRM_MAILBOX_RETURN_URL = env.crm_mailbox_return_url
+CRM_MAILBOX_ALLOW_PRIVATE_HOSTS = env.crm_mailbox_allow_private_hosts
+CRM_MAILBOX_DEFAULT_LIMITS = env.crm_mailbox_default_limits
+CRM_MAILBOX_OAUTH_TTL_SECONDS = env.crm_mailbox_oauth_ttl_seconds
+CRM_MAILBOX_SYNC_DAYS = env.crm_mailbox_sync_days
+CRM_MAILBOX_SYNC_BATCH = env.crm_mailbox_sync_batch
 CRM_INBOX_RECENT_DAYS = env.crm_inbox_recent_days
 CRM_INBOX_BULK_LIMIT = env.crm_inbox_bulk_limit
 CRM_CONTACTS_BULK_LIMIT = env.crm_contacts_bulk_limit

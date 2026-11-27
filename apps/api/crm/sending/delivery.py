@@ -63,8 +63,17 @@ def deliver(*, workspace_id: uuid.UUID, message_id: uuid.UUID, final_attempt: bo
             channel=message.channel,
             provider_message_id=message.provider_message_id,
         )
-    adapter = registry.adapter_for(message.channel)
     contact = message.conversation.contact
+    account = (
+        ChannelAccount.objects.for_workspace(workspace_id)
+        .filter(pk=message.channel_account_id)
+        .first()
+        if message.channel_account_id
+        else None
+    )
+    adapter = (
+        registry.adapter_for_account(account.provider, account) if account else None
+    ) or registry.adapter_for(message.channel)
     to = contacts.identity_value(
         workspace_id, contact.pk, ADDRESS_IDENTITY.get(message.channel, "")
     )
@@ -74,13 +83,6 @@ def deliver(*, workspace_id: uuid.UUID, message_id: uuid.UUID, final_attempt: bo
             message_id=message.pk,
             error_code=Block.NO_CHANNEL if adapter is None else Block.NO_ADDRESS,
         )
-    account = (
-        ChannelAccount.objects.for_workspace(workspace_id)
-        .filter(pk=message.channel_account_id)
-        .first()
-        if message.channel_account_id
-        else None
-    )
     body, page = message.body, ""
     if message.channel == Channel.EMAIL and (
         message.options.get(tracking.OPTION_OPENS) or message.options.get(tracking.OPTION_CLICKS)

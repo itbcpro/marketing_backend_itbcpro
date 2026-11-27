@@ -25,6 +25,7 @@ from crm.contacts import services as contacts
 from crm.contacts.models import Contact
 from crm.inbox import services as inbox
 from crm.inbox.models import ChannelAccount, Conversation, Direction, Message, MessageStatus
+from crm.mailboxes import services as mailboxes
 from crm.plans import services as plans
 from crm.sending import domains, registry, suppression
 from crm.sending.rules import ADDRESS_IDENTITY, REPLY_WINDOWS, TAG_WINDOWS, Block
@@ -107,8 +108,19 @@ def _channel_and_body(c: Check) -> str:
     return Block.INVALID_BODY if not c.body.strip() or too_long else ""
 
 
+def _mailbox(c: Check) -> str:
+    """A connected mailbox must be switched on, working and under its daily limit."""
+    if c.channel != Channel.EMAIL or c.channel_account_id is None:
+        return ""
+    reason = mailboxes.block_reason(c.workspace_id, c.channel_account_id)
+    return {
+        "mailbox_unavailable": Block.MAILBOX_UNAVAILABLE,
+        "mailbox_limit": Block.MAILBOX_LIMIT,
+    }.get(reason or "", "")
+
+
 def _sender_domain(c: Check) -> str:
-    """Mail may leave only from a domain whose DNS has been verified."""
+    """Mail may leave only from a domain whose DNS has been verified (a mailbox proved itself)."""
     if c.channel != Channel.EMAIL or c.channel_account_id is None:
         return ""
     account = (
@@ -116,6 +128,8 @@ def _sender_domain(c: Check) -> str:
     )
     if account is None:
         return Block.NO_CHANNEL
+    if account.provider == "mailbox":
+        return ""
     domain = account.external_id.rsplit("@", 1)[-1]
     return "" if domains.is_verified(c.workspace_id, domain) else Block.DOMAIN_UNVERIFIED
 
@@ -183,6 +197,7 @@ CHECKS: tuple[Callable[[Check], str], ...] = (
     _kill_switch,
     _approval,
     _channel_and_body,
+    _mailbox,
     _sender_domain,
     _address,
     _suppressed,
@@ -259,6 +274,9 @@ def send(
             "invalid channel or purpose", errors={"channel": "invalid_value"}
         )
     contact = contacts.get_contact(workspace_id, contact_id)
+    if channel == Channel.EMAIL and channel_account_id is None and actor.type == ActorType.HUMAN:
+        # A person writing by hand sends from their own connected mailbox when they have one.
+        channel_account_id = mailboxes.sender_for(workspace_id, uuid.UUID(actor.id))
     kinds = {a.get("kind") for a in attachments or []}
     reason = evaluate(
         workspace_id=workspace_id,
