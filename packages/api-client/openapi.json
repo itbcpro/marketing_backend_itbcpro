@@ -5151,6 +5151,53 @@
         "title": "DeriveResultOut",
         "type": "object"
       },
+      "DnsHealthIn": {
+        "properties": {
+          "domain": {
+            "title": "Domain",
+            "type": "string"
+          },
+          "selectors": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Selectors",
+            "type": "array"
+          }
+        },
+        "required": [
+          "domain"
+        ],
+        "title": "DnsHealthIn",
+        "type": "object"
+      },
+      "DnsHealthOut": {
+        "properties": {
+          "domain": {
+            "title": "Domain",
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/FindingOut"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "domain",
+          "status",
+          "findings"
+        ],
+        "title": "DnsHealthOut",
+        "type": "object"
+      },
       "DomainIn": {
         "properties": {
           "domain": {
@@ -6421,6 +6468,42 @@
           "namespaces"
         ],
         "title": "FieldsOut",
+        "type": "object"
+      },
+      "FindingOut": {
+        "properties": {
+          "check": {
+            "title": "Check",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "observed": {
+            "title": "Observed",
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Params",
+            "type": "object"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "check",
+          "severity",
+          "code",
+          "params",
+          "observed"
+        ],
+        "title": "FindingOut",
         "type": "object"
       },
       "FlagsIn": {
@@ -10797,6 +10880,428 @@
         "title": "LostReasonRow",
         "type": "object"
       },
+      "MailboxOAuthIn": {
+        "description": "Fields left out are unchanged. A secret of \"\" clears it; a text field of \"\" falls back.",
+        "properties": {
+          "google_client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Google Client Id"
+          },
+          "google_client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Google Client Secret"
+          },
+          "microsoft_client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Microsoft Client Id"
+          },
+          "microsoft_client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Microsoft Client Secret"
+          },
+          "microsoft_tenant": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Microsoft Tenant"
+          },
+          "redirect_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redirect Uri"
+          },
+          "return_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Url"
+          }
+        },
+        "title": "MailboxOAuthIn",
+        "type": "object"
+      },
+      "MailboxOAuthOut": {
+        "properties": {
+          "effective_redirect_uri": {
+            "title": "Effective Redirect Uri",
+            "type": "string"
+          },
+          "effective_return_url": {
+            "title": "Effective Return Url",
+            "type": "string"
+          },
+          "google": {
+            "$ref": "#/components/schemas/ProviderOut"
+          },
+          "microsoft": {
+            "$ref": "#/components/schemas/ProviderOut"
+          },
+          "microsoft_tenant": {
+            "title": "Microsoft Tenant",
+            "type": "string"
+          },
+          "redirect_uri": {
+            "title": "Redirect Uri",
+            "type": "string"
+          },
+          "return_url": {
+            "title": "Return Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "google",
+          "microsoft",
+          "microsoft_tenant",
+          "redirect_uri",
+          "return_url",
+          "effective_redirect_uri",
+          "effective_return_url"
+        ],
+        "title": "MailboxOAuthOut",
+        "type": "object"
+      },
+      "MailboxOAuthStartIn": {
+        "properties": {
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "shared": {
+            "default": false,
+            "title": "Shared",
+            "type": "boolean"
+          },
+          "sync": {
+            "default": false,
+            "title": "Sync",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "provider"
+        ],
+        "title": "MailboxOAuthStartIn",
+        "type": "object"
+      },
+      "MailboxOAuthStartOut": {
+        "properties": {
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "MailboxOAuthStartOut",
+        "type": "object"
+      },
+      "MailboxOut": {
+        "properties": {
+          "can_sync": {
+            "title": "Can Sync",
+            "type": "boolean"
+          },
+          "daily_limit": {
+            "title": "Daily Limit",
+            "type": "integer"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "host": {
+            "title": "Host",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_error": {
+            "title": "Last Error",
+            "type": "string"
+          },
+          "last_sent_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sent At"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Synced At"
+          },
+          "mine": {
+            "title": "Mine",
+            "type": "boolean"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Id"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "sent_today": {
+            "title": "Sent Today",
+            "type": "integer"
+          },
+          "shared": {
+            "title": "Shared",
+            "type": "boolean"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "sync_enabled": {
+            "title": "Sync Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "email",
+          "display_name",
+          "status",
+          "last_error",
+          "owner_id",
+          "mine",
+          "shared",
+          "daily_limit",
+          "sent_today",
+          "sync_enabled",
+          "can_sync",
+          "last_synced_at",
+          "last_sent_at",
+          "host"
+        ],
+        "title": "MailboxOut",
+        "type": "object"
+      },
+      "MailboxPatchIn": {
+        "properties": {
+          "daily_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Limit"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "sync_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sync Enabled"
+          }
+        },
+        "title": "MailboxPatchIn",
+        "type": "object"
+      },
+      "MailboxProvidersOut": {
+        "properties": {
+          "oauth": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Oauth",
+            "type": "array"
+          },
+          "smtp_ports": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Smtp Ports",
+            "type": "array"
+          },
+          "smtp_securities": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Smtp Securities",
+            "type": "array"
+          }
+        },
+        "required": [
+          "oauth",
+          "smtp_ports",
+          "smtp_securities"
+        ],
+        "title": "MailboxProvidersOut",
+        "type": "object"
+      },
+      "MailboxSmtpIn": {
+        "properties": {
+          "daily_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Limit"
+          },
+          "display_name": {
+            "default": "",
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "host": {
+            "title": "Host",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          },
+          "port": {
+            "title": "Port",
+            "type": "integer"
+          },
+          "security": {
+            "title": "Security",
+            "type": "string"
+          },
+          "shared": {
+            "default": false,
+            "title": "Shared",
+            "type": "boolean"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "host",
+          "port",
+          "security",
+          "username",
+          "password"
+        ],
+        "title": "MailboxSmtpIn",
+        "type": "object"
+      },
+      "MailboxTestOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok",
+          "code"
+        ],
+        "title": "MailboxTestOut",
+        "type": "object"
+      },
       "MappingIn": {
         "properties": {
           "mapping": {
@@ -14901,6 +15406,29 @@
           "prompt"
         ],
         "title": "PromptOut",
+        "type": "object"
+      },
+      "ProviderOut": {
+        "properties": {
+          "client_id": {
+            "title": "Client Id",
+            "type": "string"
+          },
+          "secret_set": {
+            "title": "Secret Set",
+            "type": "boolean"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_id",
+          "secret_set",
+          "source"
+        ],
+        "title": "ProviderOut",
         "type": "object"
       },
       "PublishIn": {
@@ -29603,6 +30131,50 @@
         ]
       }
     },
+    "/api/v1/crm/email/dns-health": {
+      "post": {
+        "description": "Judge the SPF, DKIM and DMARC a domain publishes, with a code and fix hint per problem.",
+        "operationId": "crm_email_dns_health",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DnsHealthIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DnsHealthOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Dns Health Check",
+        "tags": [
+          "crm-sending"
+        ]
+      }
+    },
     "/api/v1/crm/email/domains": {
       "get": {
         "operationId": "crm_domains_list",
@@ -29759,6 +30331,305 @@
         "summary": "Verify Domain",
         "tags": [
           "crm-sending"
+        ]
+      }
+    },
+    "/api/v1/crm/email/mailboxes": {
+      "get": {
+        "operationId": "crm_mailboxes_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MailboxOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "List Mailboxes",
+        "tags": [
+          "crm-mailboxes"
+        ]
+      }
+    },
+    "/api/v1/crm/email/mailboxes/oauth/start": {
+      "post": {
+        "operationId": "crm_mailboxes_oauth_start",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MailboxOAuthStartIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxOAuthStartOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Oauth Start",
+        "tags": [
+          "crm-mailboxes"
+        ]
+      }
+    },
+    "/api/v1/crm/email/mailboxes/providers": {
+      "get": {
+        "operationId": "crm_mailboxes_providers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxProvidersOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Providers Available",
+        "tags": [
+          "crm-mailboxes"
+        ]
+      }
+    },
+    "/api/v1/crm/email/mailboxes/smtp": {
+      "post": {
+        "operationId": "crm_mailboxes_connect_smtp",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MailboxSmtpIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Connect Smtp",
+        "tags": [
+          "crm-mailboxes"
+        ]
+      }
+    },
+    "/api/v1/crm/email/mailboxes/{mailbox_id}": {
+      "patch": {
+        "operationId": "crm_mailboxes_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mailbox_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Mailbox Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MailboxPatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Update Mailbox",
+        "tags": [
+          "crm-mailboxes"
+        ]
+      }
+    },
+    "/api/v1/crm/email/mailboxes/{mailbox_id}/disconnect": {
+      "post": {
+        "operationId": "crm_mailboxes_disconnect",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mailbox_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Mailbox Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Disconnect Mailbox",
+        "tags": [
+          "crm-mailboxes"
+        ]
+      }
+    },
+    "/api/v1/crm/email/mailboxes/{mailbox_id}/test": {
+      "post": {
+        "description": "Check the connection works now: an SMTP login, or a token refresh for OAuth mailboxes.",
+        "operationId": "crm_mailboxes_test",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mailbox_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Mailbox Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxTestOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Test Mailbox",
+        "tags": [
+          "crm-mailboxes"
         ]
       }
     },
@@ -39114,6 +39985,68 @@
         "summary": "Status",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/api/v1/platform/mailbox-oauth": {
+      "get": {
+        "operationId": "platform_mailbox_oauth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxOAuthOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          }
+        ],
+        "summary": "Get Settings",
+        "tags": [
+          "platform"
+        ]
+      },
+      "put": {
+        "operationId": "platform_mailbox_oauth_save",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MailboxOAuthIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxOAuthOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          }
+        ],
+        "summary": "Save Settings",
+        "tags": [
+          "platform"
         ]
       }
     },

@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Q
 
-from core.models import TenantManager, TenantModel
+from core.models import BaseModel, TenantManager, TenantModel
 
 
 class Provider(models.TextChoices):
@@ -89,3 +89,30 @@ class AuthRequest(TenantModel):
     expires_at = models.DateTimeField()
 
     objects = TenantManager["AuthRequest"]()
+
+
+class PlatformOAuthSettings(BaseModel):
+    """The OAuth apps the platform administrator registered. One row, edited in the platform panel.
+
+    Not tenant data: every workspace signs in through the same Google and Microsoft apps.
+    Secrets are sealed by the vault and never returned by the API.
+    """
+
+    google_client_id = models.CharField(max_length=200, blank=True, default="")
+    microsoft_client_id = models.CharField(max_length=200, blank=True, default="")
+    microsoft_tenant = models.CharField(max_length=128, blank=True, default="")
+    redirect_uri = models.CharField(max_length=500, blank=True, default="")
+    return_url = models.CharField(max_length=500, blank=True, default="")
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    google_client_secret_ciphertext = models.BinaryField(default=b"")
+    google_client_secret_nonce = models.BinaryField(default=b"")
+    google_client_secret_wrapped_key = models.BinaryField(default=b"")
+    google_client_secret_wrapped_key_nonce = models.BinaryField(default=b"")
+    google_client_secret_key_version = models.CharField(max_length=20, blank=True, default="")
+    microsoft_client_secret_ciphertext = models.BinaryField(default=b"")
+    microsoft_client_secret_nonce = models.BinaryField(default=b"")
+    microsoft_client_secret_wrapped_key = models.BinaryField(default=b"")
+    microsoft_client_secret_wrapped_key_nonce = models.BinaryField(default=b"")
+    microsoft_client_secret_key_version = models.CharField(max_length=20, blank=True, default="")

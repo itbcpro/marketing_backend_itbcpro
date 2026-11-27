@@ -22,7 +22,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from core import tenancy
-from crm.mailboxes import http
+from crm.mailboxes import http, platform_config
 from crm.mailboxes.models import AuthRequest, Mailbox, MailboxStatus, Provider
 from crm.mailboxes.sealing import open_credentials, open_verifier, seal_credentials, seal_verifier
 
@@ -50,7 +50,8 @@ class Spec:
 
 
 def _microsoft(path: str) -> str:
-    return f"https://login.microsoftonline.com/{settings.CRM_MICROSOFT_TENANT}/oauth2/v2.0/{path}"
+    tenant = platform_config.current().microsoft_tenant
+    return f"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/{path}"
 
 
 def spec_for(provider: str) -> Spec:
@@ -81,14 +82,15 @@ def spec_for(provider: str) -> Spec:
 
 
 def _credentials_of(provider: str) -> tuple[str, str]:
+    config = platform_config.current()
     if provider == Provider.GOOGLE:
-        return settings.CRM_GOOGLE_CLIENT_ID, settings.CRM_GOOGLE_CLIENT_SECRET
-    return settings.CRM_MICROSOFT_CLIENT_ID, settings.CRM_MICROSOFT_CLIENT_SECRET
+        return config.google_client_id, config.google_client_secret
+    return config.microsoft_client_id, config.microsoft_client_secret
 
 
 def configured(provider: str) -> bool:
     client_id, client_secret = _credentials_of(provider)
-    return bool(client_id and client_secret and settings.CRM_MAILBOX_REDIRECT_URI)
+    return bool(client_id and client_secret and platform_config.current().redirect_uri)
 
 
 def available() -> list[str]:
@@ -133,7 +135,7 @@ def start(
     client_id, _ = _credentials_of(provider)
     query = {
         "client_id": client_id,
-        "redirect_uri": settings.CRM_MAILBOX_REDIRECT_URI,
+        "redirect_uri": platform_config.current().redirect_uri,
         "response_type": "code",
         "scope": " ".join(scopes_for(provider, sync=sync)),
         "state": state,
@@ -220,7 +222,7 @@ def finish(*, state: str, code: str) -> Grant:
         {
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": settings.CRM_MAILBOX_REDIRECT_URI,
+            "redirect_uri": platform_config.current().redirect_uri,
             "code_verifier": verifier,
         },
     )

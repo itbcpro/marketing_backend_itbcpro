@@ -119,6 +119,22 @@ class Settings(BaseSettings):
     crm_contacts_bulk_limit: int = Field(default=200, ge=1, le=1000)
     crm_inbox_bulk_limit: int = Field(default=100, ge=1, le=500)
     crm_dns_timeout_seconds: float = Field(default=5.0, gt=0, le=30)
+    # Connected mailboxes (crm.mailboxes). OAuth apps are registered by the operator; without a
+    # client id the provider is simply not offered.
+    crm_google_client_id: str = ""
+    crm_google_client_secret: SecretStr = SecretStr("")
+    crm_microsoft_client_id: str = ""
+    crm_microsoft_client_secret: SecretStr = SecretStr("")
+    crm_microsoft_tenant: str = "common"
+    crm_mailbox_redirect_uri: str = ""
+    crm_mailbox_return_url: str = ""
+    crm_mailbox_allow_private_hosts: bool = False
+    crm_mailbox_default_limits: dict[str, int] = Field(
+        default_factory=lambda: {"smtp": 500, "google": 400, "microsoft": 500}
+    )
+    crm_mailbox_oauth_ttl_seconds: int = Field(default=600, ge=60, le=3600)
+    crm_mailbox_sync_days: int = Field(default=2, ge=1, le=30)
+    crm_mailbox_sync_batch: int = Field(default=50, ge=1, le=200)
     crm_unsubscribe_max_age_days: int = Field(default=730, ge=1)
     crm_webhook_tolerance_seconds: int = Field(default=300, ge=30, le=3600)
     crm_webhook_max_body_bytes: int = Field(default=10_000_000, ge=1024)

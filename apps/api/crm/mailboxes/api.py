@@ -40,13 +40,13 @@ class MailboxOut(Schema):
     host: str
 
 
-class ProvidersOut(Schema):
+class MailboxProvidersOut(Schema):
     oauth: list[str]
     smtp_ports: list[int]
     smtp_securities: list[str]
 
 
-class SmtpIn(Schema):
+class MailboxSmtpIn(Schema):
     email: str
     display_name: str = ""
     host: str
@@ -58,23 +58,23 @@ class SmtpIn(Schema):
     daily_limit: int | None = None
 
 
-class StartIn(Schema):
+class MailboxOAuthStartIn(Schema):
     provider: str
     sync: bool = False
     shared: bool = False
 
 
-class StartOut(Schema):
+class MailboxOAuthStartOut(Schema):
     url: str
 
 
-class PatchIn(Schema):
+class MailboxPatchIn(Schema):
     display_name: str | None = None
     daily_limit: int | None = None
     sync_enabled: bool | None = None
 
 
-class TestOut(Schema):
+class MailboxTestOut(Schema):
     ok: bool
     code: str
 
@@ -124,11 +124,13 @@ def list_mailboxes(request: HttpRequest) -> list[MailboxOut]:
 
 
 @router.get(
-    "/email/mailboxes/providers", response=ProvidersOut, operation_id="crm_mailboxes_providers"
+    "/email/mailboxes/providers",
+    response=MailboxProvidersOut,
+    operation_id="crm_mailboxes_providers",
 )
-def providers_available(request: HttpRequest) -> ProvidersOut:
+def providers_available(request: HttpRequest) -> MailboxProvidersOut:
     resolve_workspace(request, Permission.CRM_SEND)
-    return ProvidersOut(
+    return MailboxProvidersOut(
         oauth=oauth.available(),
         smtp_ports=list(smtp.PORTS),
         smtp_securities=list(smtp.SECURITIES),
@@ -138,7 +140,7 @@ def providers_available(request: HttpRequest) -> ProvidersOut:
 @router.post(
     "/email/mailboxes/smtp", response={201: MailboxOut}, operation_id="crm_mailboxes_connect_smtp"
 )
-def connect_smtp(request: HttpRequest, payload: SmtpIn) -> Status[MailboxOut]:
+def connect_smtp(request: HttpRequest, payload: MailboxSmtpIn) -> Status[MailboxOut]:
     membership = resolve_workspace(request, Permission.CRM_SEND)
     owner = _owner_for(membership, payload.shared)
     row = services.connect_smtp(
@@ -160,9 +162,11 @@ def connect_smtp(request: HttpRequest, payload: SmtpIn) -> Status[MailboxOut]:
 
 
 @router.post(
-    "/email/mailboxes/oauth/start", response=StartOut, operation_id="crm_mailboxes_oauth_start"
+    "/email/mailboxes/oauth/start",
+    response=MailboxOAuthStartOut,
+    operation_id="crm_mailboxes_oauth_start",
 )
-def oauth_start(request: HttpRequest, payload: StartIn) -> StartOut:
+def oauth_start(request: HttpRequest, payload: MailboxOAuthStartIn) -> MailboxOAuthStartOut:
     membership = resolve_workspace(request, Permission.CRM_SEND)
     _owner_for(membership, payload.shared)
     try:
@@ -175,7 +179,7 @@ def oauth_start(request: HttpRequest, payload: StartIn) -> StartOut:
         )
     except oauth.OAuthError as exc:
         raise ValidationFailedError("cannot connect", errors={"provider": exc.code}) from exc
-    return StartOut(url=url)
+    return MailboxOAuthStartOut(url=url)
 
 
 def _editable(request: HttpRequest, mailbox_id: uuid.UUID) -> tuple[Membership, Mailbox]:
@@ -187,7 +191,9 @@ def _editable(request: HttpRequest, mailbox_id: uuid.UUID) -> tuple[Membership, 
 @router.patch(
     "/email/mailboxes/{mailbox_id}", response=MailboxOut, operation_id="crm_mailboxes_update"
 )
-def update_mailbox(request: HttpRequest, mailbox_id: uuid.UUID, payload: PatchIn) -> MailboxOut:
+def update_mailbox(
+    request: HttpRequest, mailbox_id: uuid.UUID, payload: MailboxPatchIn
+) -> MailboxOut:
     membership, row = _editable(request, mailbox_id)
     changed = services.update(
         workspace_id=membership.workspace_id, mailbox=row, **payload.model_dump(exclude_unset=True)
@@ -209,13 +215,13 @@ def disconnect_mailbox(request: HttpRequest, mailbox_id: uuid.UUID) -> MailboxOu
 
 
 @router.post(
-    "/email/mailboxes/{mailbox_id}/test", response=TestOut, operation_id="crm_mailboxes_test"
+    "/email/mailboxes/{mailbox_id}/test", response=MailboxTestOut, operation_id="crm_mailboxes_test"
 )
-def test_mailbox(request: HttpRequest, mailbox_id: uuid.UUID) -> TestOut:
+def test_mailbox(request: HttpRequest, mailbox_id: uuid.UUID) -> MailboxTestOut:
     """Check the connection works now: an SMTP login, or a token refresh for OAuth mailboxes."""
     _, row = _editable(request, mailbox_id)
     if row.status == MailboxStatus.DISABLED:
-        return TestOut(ok=False, code="disconnected")
+        return MailboxTestOut(ok=False, code="disconnected")
     try:
         if row.provider == Provider.SMTP:
             config = row.config
@@ -229,7 +235,7 @@ def test_mailbox(request: HttpRequest, mailbox_id: uuid.UUID) -> TestOut:
         else:
             oauth.access_token(row)
     except (smtp.SmtpError, oauth.OAuthError) as exc:
-        return TestOut(ok=False, code=exc.code)
+        return MailboxTestOut(ok=False, code=exc.code)
     row.status, row.last_error = MailboxStatus.CONNECTED, ""
     row.save(update_fields=["status", "last_error", "updated_at"])
-    return TestOut(ok=True, code="")
+    return MailboxTestOut(ok=True, code="")

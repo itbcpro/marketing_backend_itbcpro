@@ -47,6 +47,9 @@ from crm.fields.api import router as crm_fields_router
 from crm.inbox.api import router as crm_inbox_router
 from crm.leads.api import router as crm_leads_router
 from crm.lists.api import router as crm_lists_router
+from crm.mailboxes.api import router as crm_mailboxes_router
+from crm.mailboxes.api_platform import router as mailbox_platform_router
+from crm.mailboxes.api_public import router as crm_mailboxes_public_router
 from crm.meta.api import router as crm_meta_router
 from crm.meta.api_public import router as crm_meta_public_router
 from crm.notifications.api import router as crm_notifications_router
@@ -162,6 +165,7 @@ def handle_unexpected(request: HttpRequest, exc: Exception) -> HttpResponse:
 api.add_router("/auth", auth_router)
 api.add_router("/workspaces", workspaces_router)
 api.add_router("/platform", platform_router)
+api.add_router("/platform", mailbox_platform_router)
 api.add_router("/staff", staff_router)
 api.add_router("/audit", audit_router)
 api.add_router("/connections", connections_router)
@@ -175,6 +179,7 @@ api.add_router("/crm", crm_activity_router)
 api.add_router("/crm", crm_appointments_router)
 api.add_router("/crm", crm_team_router)
 api.add_router("/crm", crm_lists_router)
+api.add_router("/crm", crm_mailboxes_router)
 api.add_router("/crm", crm_inbox_router)
 api.add_router("/crm", crm_sending_router)
 api.add_router("/crm", crm_templates_router)
@@ -197,6 +202,7 @@ api.add_router("/crm", crm_campaigns_router)
 api.add_router("/crm", crm_usage_router)
 api.add_router("/crm-public", crm_public_router)
 api.add_router("/crm-public", crm_webhooks_public_router)
+api.add_router("/crm-public", crm_mailboxes_public_router)
 api.add_router("/crm-public", crm_sms_public_router)
 api.add_router("/crm-public", crm_tracking_public_router)
 api.add_router("/crm-public", crm_meta_public_router)

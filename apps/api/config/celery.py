@@ -40,6 +40,7 @@ app.conf.beat_schedule = {
     "ads-sync-accounts": {"task": "ads.sync_accounts", "schedule": 86400.0},
     "crm-bridge-instagram": {"task": "crm.inbox.bridge_instagram_all", "schedule": 60.0},
     "crm-recheck-domains": {"task": "crm.sending.recheck_domains_all", "schedule": 3600.0},
+    "crm-mailbox-sync": {"task": "crm.mailboxes.sync_all", "schedule": 120.0},
     "crm-campaign-tick": {"task": "crm.campaigns.tick", "schedule": 30.0},
     "crm-notification-digests": {"task": "crm.notifications.send_digests", "schedule": 3600.0},
     "crm-meta-sync-templates": {"task": "crm.meta.sync_templates_all", "schedule": 3600.0},

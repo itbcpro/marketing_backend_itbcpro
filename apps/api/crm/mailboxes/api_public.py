@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import cast
 from urllib.parse import urlencode
 
-from django.conf import settings
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from ninja import Router
 from ninja.throttling import BaseThrottle
@@ -14,7 +13,7 @@ from audit.actors import Actor
 from core import tenancy
 from core.errors import ConflictError, ValidationFailedError
 from crm.common.throttles import PublicLinkThrottle
-from crm.mailboxes import oauth, services
+from crm.mailboxes import oauth, platform_config, services
 
 router = Router(tags=["crm-public"], auth=None)
 THROTTLE: list[BaseThrottle] = [PublicLinkThrottle("60/m")]
@@ -22,7 +21,7 @@ THROTTLE: list[BaseThrottle] = [PublicLinkThrottle("60/m")]
 
 def _back(**query: str) -> HttpResponse:
     """Always to the configured page: the address in the request is never followed."""
-    target = settings.CRM_MAILBOX_RETURN_URL or "/"
+    target = platform_config.current().return_url or "/"
     return HttpResponseRedirect(f"{target}?{urlencode(query)}")
 
 
