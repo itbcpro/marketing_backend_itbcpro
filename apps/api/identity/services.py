@@ -11,6 +11,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import transaction
 from django.http import HttpRequest
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
@@ -20,7 +21,7 @@ from audit.actors import Actor
 from audit.services import record_event
 from core.errors import DomainError, ErrorCode, UnauthenticatedError, ValidationFailedError
 from identity import jwt_service, mfa, passkeys, sessions
-from identity.models import User
+from identity.models import PasskeyCredential, RecoveryCode, TotpDevice, User
 from notifications.email import send_templated_email
 
 BACKEND = "django.contrib.auth.backends.ModelBackend"
@@ -237,3 +238,27 @@ def _apply_new_password(
     sessions.revoke_all_sessions(user, keep=keep)
     jwt_service.revoke_user(user)
     record_event(action=action, actor=Actor.human(user.pk), target_type="user", target_id=user.pk)
+
+
+def has_second_factor(user: User) -> bool:
+    return mfa.mfa_enabled(user)
+
+
+def reset_mfa(user: User, *, by: User) -> None:
+    """Remove every second factor and sign the user out everywhere (an administrator's action).
+
+    The next sign-in works with the password alone; where the user's role requires MFA they are
+    sent through enrolment again before anything else is reachable.
+    """
+    with transaction.atomic():
+        TotpDevice.objects.filter(user=user).delete()
+        RecoveryCode.objects.filter(user=user).delete()
+        PasskeyCredential.objects.filter(user=user).delete()
+        sessions.revoke_all_sessions(user)
+        jwt_service.revoke_user(user)
+        record_event(
+            action="mfa.reset_by_admin",
+            actor=Actor.human(by.pk),
+            target_type="user",
+            target_id=user.pk,
+        )

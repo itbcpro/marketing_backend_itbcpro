@@ -51,6 +51,14 @@ class TenantCreatedOut(Schema):
     owner: OwnerCreatedOut
 
 
+class TenantMemberOut(Schema):
+    user_id: uuid.UUID
+    email: str
+    full_name: str
+    role: str
+    mfa_enabled: bool
+
+
 class TenantActiveIn(Schema):
     is_active: bool
 
@@ -141,3 +149,35 @@ def add_owner(
         admin=admin, workspace_id=workspace_id, email=payload.email, full_name=payload.full_name
     )
     return Status(201, _owner(result))
+
+
+@router.get(
+    "/tenants/{workspace_id}/members",
+    response=list[TenantMemberOut],
+    operation_id="platform_tenant_members",
+)
+def list_members(request: HttpRequest, workspace_id: uuid.UUID) -> list[TenantMemberOut]:
+    _admin(request)
+    return [
+        TenantMemberOut(
+            user_id=m.user_id,
+            email=m.user.email,
+            full_name=m.user.full_name,
+            role=m.role,
+            mfa_enabled=has_mfa,
+        )
+        for m, has_mfa in platform.list_members(workspace_id)
+    ]
+
+
+@router.post(
+    "/tenants/{workspace_id}/members/{user_id}/reset-mfa",
+    response={204: None},
+    operation_id="platform_member_reset_mfa",
+)
+def reset_member_mfa(
+    request: HttpRequest, workspace_id: uuid.UUID, user_id: uuid.UUID
+) -> Status[None]:
+    admin = _admin(request)
+    platform.reset_member_mfa(admin=admin, workspace_id=workspace_id, user_id=user_id)
+    return Status(204, None)

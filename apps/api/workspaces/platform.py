@@ -19,6 +19,7 @@ from django.utils.text import slugify
 from audit.actors import Actor
 from audit.services import record_event
 from core.errors import ConflictError, NotFoundError, ValidationFailedError
+from identity import services as identity_services
 from identity.models import User
 from workspaces.models import Membership, Organization, Role, Workspace, unique_organization_slug
 
@@ -179,3 +180,31 @@ def get_tenant(workspace_id: uuid.UUID) -> Workspace:
     if workspace is None:
         raise NotFoundError("tenant not found")
     return workspace
+
+
+def list_members(workspace_id: uuid.UUID) -> list[tuple[Membership, bool]]:
+    """Members of a tenant with whether each has a second factor set up."""
+    get_tenant(workspace_id)
+    rows = Membership.objects.filter(workspace_id=workspace_id).select_related("user")
+    ordered = rows.order_by("role", "user__email")
+    return [(m, identity_services.has_second_factor(m.user)) for m in ordered]
+
+
+def reset_member_mfa(*, admin: User, workspace_id: uuid.UUID, user_id: uuid.UUID) -> None:
+    """Take away a member's second factors. Platform administrators cannot be reset here."""
+    membership = (
+        Membership.objects.select_related("user")
+        .filter(workspace_id=workspace_id, user_id=user_id, user__is_superuser=False)
+        .first()
+    )
+    if membership is None:
+        raise NotFoundError("member not found")
+    with transaction.atomic():
+        identity_services.reset_mfa(membership.user, by=admin)
+        record_event(
+            action="platform.member_mfa_reset",
+            actor=Actor.human(admin.pk),
+            workspace_id=workspace_id,
+            target_type="user",
+            target_id=user_id,
+        )

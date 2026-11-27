@@ -5,10 +5,12 @@ from typing import Any
 
 import pytest
 from django.test import Client
+from django.utils import timezone
 
 from audit.models import AuditEvent
 from conftest import PASSWORD, make_user
-from identity.models import User
+from identity import mfa
+from identity.models import RecoveryCode, TotpDevice, User
 from workspaces.models import Membership, Role, Workspace
 
 pytestmark = pytest.mark.django_db
@@ -29,6 +31,26 @@ def admin(db: None) -> User:
 @pytest.fixture
 def mfa_done(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("identity.mfa.mfa_enabled", lambda user: True)
+
+
+@pytest.fixture
+def mfa_admin_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The administrator has a second factor; everyone else is judged by their real devices."""
+    real = mfa.mfa_enabled
+    monkeypatch.setattr("identity.mfa.mfa_enabled", lambda user: user.is_superuser or real(user))
+
+
+def add_second_factor(user: User) -> None:
+    TotpDevice.objects.create(
+        user=user,
+        ciphertext=b"x",
+        nonce=b"x",
+        wrapped_key=b"x",
+        wrapped_key_nonce=b"x",
+        key_version="v1",
+        confirmed_at=timezone.now(),
+    )
+    RecoveryCode.objects.create(user=user, code_hash="hash")
 
 
 def signed_in(user: User) -> Client:
@@ -202,3 +224,75 @@ def test_an_unknown_tenant_is_not_found(admin: User, mfa_done: None):
     client = signed_in(admin)
     assert client.get(f"{TENANTS}/{missing}").status_code == 404
     assert call(client, "patch", f"{TENANTS}/{missing}", {"is_active": False}).status_code == 404
+
+
+def test_members_are_listed_with_their_second_factor_status(
+    admin: User, workspace: Workspace, mfa_admin_only: None
+):
+    owner = User.objects.get(email="owner@example.com")
+    add_second_factor(owner)
+    make_user("viewer@example.com", workspace, Role.VIEWER)
+    rows = signed_in(admin).get(f"{TENANTS}/{workspace.pk}/members").json()
+    by_email = {r["email"]: r for r in rows}
+    assert by_email["owner@example.com"]["mfa_enabled"] is True
+    assert by_email["owner@example.com"]["role"] == "owner"
+    assert by_email["viewer@example.com"]["mfa_enabled"] is False
+
+
+def test_resetting_mfa_removes_the_factors_signs_the_user_out_and_forces_enrolment(
+    admin: User, workspace: Workspace, mfa_admin_only: None, settings
+):
+    settings.MFA_REQUIRED_ROLES = ["owner"]
+    owner = User.objects.get(email="owner@example.com")
+    owner_client = Client()
+    owner_client.get(f"{BASE}/auth/csrf")
+    login = call(
+        owner_client, "post", f"{BASE}/auth/login", {"email": owner.email, "password": PASSWORD}
+    )
+    assert login.status_code == 200
+    add_second_factor(owner)
+
+    res = call(signed_in(admin), "post", f"{TENANTS}/{workspace.pk}/members/{owner.pk}/reset-mfa")
+    assert res.status_code == 204
+    assert not TotpDevice.objects.filter(user=owner).exists()
+    assert not RecoveryCode.objects.filter(user=owner).exists()
+    assert owner_client.get(f"{BASE}/auth/me").status_code == 401  # the old session is gone
+
+    fresh = Client()
+    fresh.get(f"{BASE}/auth/csrf")
+    call(fresh, "post", f"{BASE}/auth/login", {"email": owner.email, "password": PASSWORD})
+    assert fresh.get(f"{BASE}/auth/me").json()["mfa_enrollment_required"] is True
+    event = AuditEvent.objects.get(action="mfa.reset_by_admin")
+    assert event.actor_id == str(admin.pk) and event.target_id == str(owner.pk)
+    assert AuditEvent.objects.filter(action="platform.member_mfa_reset").exists()
+
+
+def test_a_member_of_another_tenant_cannot_be_reset_through_this_one(
+    admin: User, workspace: Workspace, mfa_admin_only: None
+):
+    other = make_user("other@example.com")
+    from workspaces.services import create_workspace
+
+    create_workspace(name="Other Co", owner=other)
+    add_second_factor(other)
+    res = call(signed_in(admin), "post", f"{TENANTS}/{workspace.pk}/members/{other.pk}/reset-mfa")
+    assert res.status_code == 404
+    assert TotpDevice.objects.filter(user=other).exists()
+
+
+def test_platform_administrators_cannot_be_reset_through_a_tenant(
+    admin: User, workspace: Workspace, mfa_admin_only: None
+):
+    Membership.objects.create(workspace=workspace, user=admin, role=Role.ADMIN)
+    res = call(signed_in(admin), "post", f"{TENANTS}/{workspace.pk}/members/{admin.pk}/reset-mfa")
+    assert res.status_code == 404
+
+
+def test_a_tenant_owner_cannot_use_the_member_endpoints(workspace: Workspace, mfa_done: None):
+    owner = User.objects.get(email="owner@example.com")
+    client = signed_in(owner)
+    assert client.get(f"{TENANTS}/{workspace.pk}/members").status_code == 404
+    assert (
+        call(client, "post", f"{TENANTS}/{workspace.pk}/members/{owner.pk}/reset-mfa").status_code
+        == 404
+    )
