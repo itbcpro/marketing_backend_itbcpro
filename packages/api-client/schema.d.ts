@@ -2342,6 +2342,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/contacts/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search Contacts */
+        post: operations["crm_contacts_search"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/contacts/upsert": {
         parameters: {
             query?: never;
@@ -9531,6 +9548,30 @@ export interface components {
             source?: string | null;
             /** Tag */
             tag?: string | null;
+        };
+        /**
+         * ContactSearchIn
+         * @description A list view: any filter of the contact filter language, a text search and a sort.
+         */
+        ContactSearchIn: {
+            /** Cursor */
+            cursor?: string | null;
+            /** Filter */
+            filter?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Limit
+             * @default 50
+             */
+            limit: number;
+            /** Q */
+            q?: string | null;
+            /**
+             * Sort
+             * @default newest
+             */
+            sort: string;
         };
         /** ContactSettingsIn */
         ContactSettingsIn: {
@@ -19730,6 +19771,30 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MergeOut"];
+                };
+            };
+        };
+    };
+    crm_contacts_search: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactSearchIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ContactOut_"];
                 };
             };
         };

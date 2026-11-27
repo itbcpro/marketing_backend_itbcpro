@@ -4375,6 +4375,57 @@
         "title": "ContactQuery",
         "type": "object"
       },
+      "ContactSearchIn": {
+        "description": "A list view: any filter of the contact filter language, a text search and a sort.",
+        "properties": {
+          "cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor"
+          },
+          "filter": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filter"
+          },
+          "limit": {
+            "default": 50,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "q": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Q"
+          },
+          "sort": {
+            "default": "newest",
+            "title": "Sort",
+            "type": "string"
+          }
+        },
+        "title": "ContactSearchIn",
+        "type": "object"
+      },
       "ContactSettingsIn": {
         "properties": {
           "match_order": {
@@ -28292,6 +28343,49 @@
           }
         ],
         "summary": "Undo Merge",
+        "tags": [
+          "crm-contacts"
+        ]
+      }
+    },
+    "/api/v1/crm/contacts/search": {
+      "post": {
+        "operationId": "crm_contacts_search",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactSearchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_ContactOut_"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Search Contacts",
         "tags": [
           "crm-contacts"
         ]
