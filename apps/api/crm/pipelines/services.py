@@ -37,6 +37,7 @@ STATUSES = resolve.STATUSES
 find_deal = resolve.find_deal
 resolve_lost_reason = resolve.resolve_lost_reason
 resolve_stage = resolve.resolve_stage
+resolve_owner = resolve.resolve_owner
 PERCENT = 100
 TAG_SCAN_LIMIT = 5_000
 

@@ -10,6 +10,7 @@ import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any, cast
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
@@ -19,6 +20,7 @@ from core import tenancy, vault
 from core.errors import NotFoundError, PermissionDeniedError, ValidationFailedError
 from crm.consent.models import Channel
 from crm.sending import services as sending
+from crm.webhooks import lead_intake
 from crm.webhooks.models import DeliveryStatus, WebhookDelivery, WebhookEndpoint, WebhookKind
 
 SIGNATURE_HEADER = "X-Signature"
@@ -70,26 +72,61 @@ def get_endpoint(workspace_id: uuid.UUID, endpoint_id: uuid.UUID) -> WebhookEndp
     return found
 
 
-def create_endpoint(workspace_id: uuid.UUID, *, kind: str, name: str) -> Created:
-    if kind not in WebhookKind.values:
-        raise ValidationFailedError("invalid_kind")
+def _public_id(workspace_id: uuid.UUID) -> str:
+    return f"{workspace_id.hex}.{secrets.token_urlsafe(24)}"
+
+
+def _clean_name(name: str) -> str:
     cleaned = " ".join(name.split())
     if not cleaned or len(cleaned) > NAME_LIMIT:
         raise ValidationFailedError("invalid_name")
+    return cleaned
+
+
+def _clean_config(workspace_id: uuid.UUID, kind: str, config: dict[str, Any]) -> dict[str, Any]:
+    return lead_intake.clean_config(workspace_id, config) if kind == WebhookKind.LEAD_INTAKE else {}
+
+
+def create_endpoint(
+    workspace_id: uuid.UUID, *, kind: str, name: str, config: dict[str, Any] | None = None
+) -> Created:
+    if kind not in WebhookKind.values:
+        raise ValidationFailedError("invalid_kind")
+    cleaned = _clean_name(name)
     secret = secrets.token_urlsafe(SECRET_BYTES)
     endpoint = WebhookEndpoint(
         workspace_id=workspace_id,
         kind=kind,
         name=cleaned,
-        public_id=f"{workspace_id.hex}.{secrets.token_urlsafe(24)}",
+        public_id=_public_id(workspace_id),
+        config=_clean_config(workspace_id, kind, config or {}),
     )
     _seal(endpoint, secret)
     endpoint.save()
     return Created(endpoint, secret)
 
 
-def rotate_secret(workspace_id: uuid.UUID, endpoint_id: uuid.UUID) -> Created:
+def update_endpoint(
+    workspace_id: uuid.UUID,
+    endpoint_id: uuid.UUID,
+    *,
+    name: str | None = None,
+    config: dict[str, Any] | None = None,
+) -> WebhookEndpoint:
     endpoint = get_endpoint(workspace_id, endpoint_id)
+    if name is not None:
+        endpoint.name = _clean_name(name)
+    if config is not None:
+        endpoint.config = _clean_config(workspace_id, endpoint.kind, config)
+    endpoint.save()
+    return endpoint
+
+
+def rotate_secret(workspace_id: uuid.UUID, endpoint_id: uuid.UUID) -> Created:
+    """A new signing secret. A lead intake URL is its own credential, so it gets a new URL."""
+    endpoint = get_endpoint(workspace_id, endpoint_id)
+    if endpoint.kind == WebhookKind.LEAD_INTAKE:
+        endpoint.public_id = _public_id(workspace_id)
     secret = secrets.token_urlsafe(SECRET_BYTES)
     _seal(endpoint, secret)
     endpoint.save()
@@ -175,9 +212,10 @@ def _inbound_email(workspace_id: uuid.UUID, body: bytes) -> None:
     sending.ingest_email(workspace_id=workspace_id, raw=body)
 
 
-HANDLERS: dict[str, Callable[[uuid.UUID, bytes], None]] = {
-    WebhookKind.INBOUND_EMAIL: _inbound_email,
-    WebhookKind.EMAIL_EVENTS: _email_events,
+HANDLERS: dict[str, Callable[[WebhookEndpoint, bytes], None]] = {
+    WebhookKind.INBOUND_EMAIL: lambda e, body: _inbound_email(e.workspace_id, body),
+    WebhookKind.EMAIL_EVENTS: lambda e, body: _email_events(e.workspace_id, body),
+    WebhookKind.LEAD_INTAKE: lead_intake.handle,
 }
 
 
@@ -188,7 +226,8 @@ def receive(public_id: str, signature: str, body: bytes) -> WebhookDelivery:
     endpoint = _find(public_id)
     workspace_id = endpoint.workspace_id
     with tenancy.use_workspace(workspace_id):
-        _verify(endpoint, signature, body)
+        if endpoint.kind != WebhookKind.LEAD_INTAKE:  # its secret URL is the credential
+            _verify(endpoint, signature, body)
         digest = hashlib.sha256(body).hexdigest()
         try:
             with transaction.atomic():
@@ -202,14 +241,20 @@ def receive(public_id: str, signature: str, body: bytes) -> WebhookDelivery:
         WebhookEndpoint.objects.for_workspace(workspace_id).filter(pk=endpoint.pk).update(
             last_received_at=timezone.now()
         )
+        problems: dict[str, Any] = {}
         try:
             with transaction.atomic():
-                HANDLERS[endpoint.kind](workspace_id, body)
+                HANDLERS[endpoint.kind](endpoint, body)
             delivery.status = DeliveryStatus.PROCESSED
         except ValidationFailedError as exc:
             delivery.status = DeliveryStatus.FAILED
-            delivery.error = str(exc)[:300]
+            problems = cast("dict[str, Any]", exc.params.get("errors") or {})
+            detail = "; ".join(f"{k}: {v}" for k, v in problems.items())
+            delivery.error = (f"{exc} ({detail})" if detail else str(exc))[:300]
         delivery.save(update_fields=["status", "error", "updated_at"])
+        if delivery.status == DeliveryStatus.FAILED and endpoint.kind == WebhookKind.LEAD_INTAKE:
+            # The sender (Zapier, n8n...) should see that the lead was not taken.
+            raise ValidationFailedError(delivery.error, errors=problems)
     return delivery
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from django.http import HttpRequest
 from ninja import Router, Schema, Status
@@ -20,6 +21,12 @@ router = Router(tags=["crm-webhooks"], auth=api_auth)
 class EndpointIn(Schema):
     kind: str
     name: str
+    config: dict[str, Any] = {}
+
+
+class EndpointPatch(Schema):
+    name: str | None = None
+    config: dict[str, Any] | None = None
 
 
 class EndpointOut(Schema):
@@ -28,6 +35,7 @@ class EndpointOut(Schema):
     name: str
     public_id: str
     is_active: bool
+    config: dict[str, Any]
     last_received_at: datetime | None
 
 
@@ -53,6 +61,7 @@ def _out(row: WebhookEndpoint) -> EndpointOut:
         name=row.name,
         public_id=row.public_id,
         is_active=row.is_active,
+        config=row.config,
         last_received_at=row.last_received_at,
     )
 
@@ -75,7 +84,7 @@ def list_endpoints(request: HttpRequest) -> list[EndpointOut]:
 def create(request: HttpRequest, payload: EndpointIn) -> Status[CreatedOut]:
     membership = resolve_workspace(request, Permission.CRM_MANAGE_CHANNELS)
     created = services.create_endpoint(
-        membership.workspace_id, kind=payload.kind, name=payload.name
+        membership.workspace_id, kind=payload.kind, name=payload.name, config=payload.config
     )
     return Status(201, _created(created))
 
@@ -86,6 +95,15 @@ def create(request: HttpRequest, payload: EndpointIn) -> Status[CreatedOut]:
 def rotate(request: HttpRequest, endpoint_id: uuid.UUID) -> CreatedOut:
     membership = resolve_workspace(request, Permission.CRM_MANAGE_CHANNELS)
     return _created(services.rotate_secret(membership.workspace_id, endpoint_id))
+
+
+@router.put("/webhooks/{endpoint_id}", response=EndpointOut, operation_id="crm_webhooks_update")
+def update(request: HttpRequest, endpoint_id: uuid.UUID, payload: EndpointPatch) -> EndpointOut:
+    membership = resolve_workspace(request, Permission.CRM_MANAGE_CHANNELS)
+    row = services.update_endpoint(
+        membership.workspace_id, endpoint_id, name=payload.name, config=payload.config
+    )
+    return _out(row)
 
 
 @router.patch(

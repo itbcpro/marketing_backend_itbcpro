@@ -11,6 +11,7 @@ from core.models import TenantManager, TenantModel
 class WebhookKind(models.TextChoices):
     INBOUND_EMAIL = "inbound_email"  # a raw RFC 822 message as the request body
     EMAIL_EVENTS = "email_events"  # JSON bounce and complaint notices
+    LEAD_INTAKE = "lead_intake"  # a lead from Zapier, n8n, a form: becomes a contact and a deal
 
 
 class WebhookEndpoint(TenantModel):
@@ -24,6 +25,8 @@ class WebhookEndpoint(TenantModel):
     secret_wrapped_key_nonce = models.BinaryField()
     secret_key_version = models.CharField(max_length=20)
     is_active = models.BooleanField(default=True)
+    # Settings of the kind. For lead intake: where a lead goes (see crm.webhooks.lead_intake).
+    config = models.JSONField(default=dict)
     last_received_at = models.DateTimeField(null=True, blank=True)
 
     objects = TenantManager["WebhookEndpoint"]()

@@ -23,7 +23,6 @@ from crm.activity import services as activity
 from crm.contacts import services as contacts
 from crm.fields import services as fields
 from crm.pipelines import services as pipelines
-from workspaces.models import Membership
 
 CUSTOM_PREFIX = "custom."
 MICROS = 1_000_000
@@ -160,18 +159,6 @@ def parse(workspace_id: uuid.UUID, data: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def _owner(workspace_id: uuid.UUID, text: str) -> uuid.UUID | None:
-    """The member whose name or email is ``text``; nobody if there is no such member."""
-    wanted = " ".join(text.split()).casefold()
-    if not wanted:
-        return None
-    for member in Membership.objects.filter(workspace_id=workspace_id).select_related("user"):
-        names = {member.user.email.casefold(), " ".join(member.user.full_name.split()).casefold()}
-        if wanted in names:
-            return member.user_id
-    return None
-
-
 def _contact(
     workspace_id: uuid.UUID, actor: Actor, row: dict[str, Any], *, create_missing: bool
 ) -> Any:
@@ -213,7 +200,7 @@ def write(
         name=row["name"],
         value_micros=row["value"] or 0,
         currency=settings.CRM_WALLET_CURRENCY,
-        assigned_to=_owner(workspace_id, row["owner"]),
+        assigned_to=pipelines.resolve_owner(workspace_id, row["owner"]),
         source=row["source"],
         expected_close_date=row["expected_close_date"],
         tags=[*options.get("tags", []), *row["tags"]],

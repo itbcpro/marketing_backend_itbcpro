@@ -7,6 +7,7 @@ import uuid
 from core.errors import ValidationFailedError
 from crm.pipelines import clean
 from crm.pipelines.models import Opportunity, OpportunityStatus, Stage
+from workspaces.models import Membership
 
 
 def _same(a: str, b: str) -> bool:
@@ -65,3 +66,15 @@ def find_deal(
 
 
 STATUSES = tuple(OpportunityStatus.values)
+
+
+def resolve_owner(workspace_id: uuid.UUID, text: str) -> uuid.UUID | None:
+    """The member whose full name or email is ``text``; nobody if there is no such member."""
+    wanted = " ".join(text.split()).casefold()
+    if not wanted:
+        return None
+    for member in Membership.objects.filter(workspace_id=workspace_id).select_related("user"):
+        names = {member.user.email.casefold(), " ".join(member.user.full_name.split()).casefold()}
+        if wanted in names:
+            return member.user_id
+    return None
