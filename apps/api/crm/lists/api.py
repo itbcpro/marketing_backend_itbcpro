@@ -16,7 +16,7 @@ from core.errors import ValidationFailedError
 from crm.contacts import services as contacts
 from crm.contacts.schemas import ContactOut
 from crm.lists import bulk, csvio, export, imports, smart_lists
-from crm.lists.models import BulkAction, BulkJob, ImportJob, SmartList
+from crm.lists.models import BulkAction, BulkJob, ImportJob, ImportKind, SmartList
 from identity.authentication import api_auth
 from workspaces.deps import resolve_workspace, resolve_workspace_for_file
 from workspaces.models import Membership
@@ -131,6 +131,7 @@ def smart_list_contacts(
 
 class ImportOut(Schema):
     id: uuid.UUID
+    kind: str
     file_name: str
     status: str
     headers: list[str]
@@ -146,6 +147,7 @@ class ImportOut(Schema):
 
 class ImportCreatedOut(ImportOut):
     preview: list[dict[str, str]]
+    targets: list[str]
 
 
 class MappingIn(Schema):
@@ -162,16 +164,22 @@ def _import_out(job: ImportJob) -> ImportOut:
 
 
 @router.post("/imports", response={201: ImportCreatedOut}, operation_id="crm_imports_create")
-def create_import(request: HttpRequest, file: File[UploadedFile]) -> Status[ImportCreatedOut]:
+def create_import(
+    request: HttpRequest, file: File[UploadedFile], kind: str = ImportKind.CONTACTS
+) -> Status[ImportCreatedOut]:
     membership = resolve_workspace(request, Permission.CRM_IMPORT_EXPORT)
+    if kind not in ImportKind.values:
+        raise ValidationFailedError("invalid kind", errors={"kind": "invalid_value"})
     job = imports.create_import(
         workspace_id=membership.workspace_id,
         actor=_actor(membership),
         file_name=file.name or "import.csv",
         raw=file.read(),
+        kind=kind,
     )
     body = _import_out(job).model_dump()
-    return Status(201, ImportCreatedOut(**body, preview=imports.preview(job)))
+    targets = sorted(imports.targets(membership.workspace_id, kind) - {imports.IGNORE})
+    return Status(201, ImportCreatedOut(**body, preview=imports.preview(job), targets=targets))
 
 
 @router.get("/imports/{job_id}", response=ImportOut, operation_id="crm_imports_get")

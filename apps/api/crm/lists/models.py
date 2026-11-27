@@ -48,9 +48,15 @@ class JobStatus(models.TextChoices):
     CANCELED = "canceled"
 
 
+class ImportKind(models.TextChoices):
+    CONTACTS = "contacts"
+    DEALS = "deals"
+
+
 class ImportJob(TenantModel):
     """One CSV import. The file is kept until the job ends so a crashed run can resume."""
 
+    kind = models.CharField(max_length=10, choices=ImportKind.choices, default=ImportKind.CONTACTS)
     file_name = models.CharField(max_length=200)
     content = models.TextField()
     headers = models.JSONField(default=list)

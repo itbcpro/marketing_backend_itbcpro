@@ -88,6 +88,17 @@ def create_company(*, workspace_id: uuid.UUID, actor: Actor, data: dict[str, Any
     return company
 
 
+def find_or_create_company(*, workspace_id: uuid.UUID, actor: Actor, name: str) -> Company:
+    """The company called ``name`` (case-insensitive), created when it does not exist yet."""
+    wanted = _name(name)
+    found = (
+        Company.objects.for_workspace(workspace_id)
+        .filter(name__iexact=wanted, deleted_at__isnull=True)
+        .first()
+    )
+    return found or create_company(workspace_id=workspace_id, actor=actor, data={"name": wanted})
+
+
 def update_company(
     *, workspace_id: uuid.UUID, actor: Actor, company_id: uuid.UUID, data: dict[str, Any]
 ) -> Company:

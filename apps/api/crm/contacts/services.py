@@ -4,7 +4,13 @@ import uuid
 
 from core.errors import NotFoundError
 from crm.contacts import selectors, stats, tags
-from crm.contacts.companies import create_company, delete_company, get_company, update_company
+from crm.contacts.companies import (
+    create_company,
+    delete_company,
+    find_or_create_company,
+    get_company,
+    update_company,
+)
 from crm.contacts.contact_service import (
     add_follower,
     assign,
@@ -65,6 +71,7 @@ __all__ = [
     "delete_contact",
     "erase_contact",
     "find_contact",
+    "find_or_create_company",
     "get_company",
     "get_contact",
     "get_settings",

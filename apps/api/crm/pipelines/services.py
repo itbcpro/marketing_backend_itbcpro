@@ -19,7 +19,7 @@ from crm.contacts import services as contacts
 from crm.events.publisher import publish
 from crm.fields import services as fields
 from crm.fields.models import ObjectType
-from crm.pipelines import clean, events, filters, insights, rules, stats
+from crm.pipelines import clean, events, filters, insights, resolve, rules, stats
 from crm.pipelines.models import (
     DealPriority,
     LostReason,
@@ -33,6 +33,10 @@ from workspaces.models import Membership
 from workspaces.scope import restrict
 
 OPEN = OpportunityStatus.OPEN
+STATUSES = resolve.STATUSES
+find_deal = resolve.find_deal
+resolve_lost_reason = resolve.resolve_lost_reason
+resolve_stage = resolve.resolve_stage
 PERCENT = 100
 TAG_SCAN_LIMIT = 5_000
 
@@ -328,7 +332,9 @@ def create_opportunity(
     tags: list[str] | None = None,
     probability_override: int | None = None,
     custom: dict[str, Any] | None = None,
+    backdate_to: datetime | None = None,
 ) -> Opportunity:
+    """Create a deal. ``backdate_to`` gives a deal brought over from elsewhere its original age."""
     contact = contacts.get_contact(workspace_id, contact_id)
     pipeline = get_pipeline(workspace_id, pipeline_id)
     if pipeline.archived_at is not None:
@@ -377,6 +383,13 @@ def create_opportunity(
             to_stage=stage,
             changed_by_id=_user_id(actor),
         )
+        if backdate_to is not None:
+            Opportunity.objects.filter(pk=deal.pk).update(
+                created_at=backdate_to,
+                last_stage_change_at=backdate_to,
+                last_status_change_at=backdate_to,
+            )
+            StageChange.objects.filter(opportunity=deal).update(created_at=backdate_to)
         publish(
             "crm.opportunity.created",
             workspace_id=workspace_id,

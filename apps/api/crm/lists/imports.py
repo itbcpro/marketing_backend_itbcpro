@@ -17,8 +17,8 @@ from core.errors import ConflictError, NotFoundError, ValidationFailedError
 from crm.consent import services as consent
 from crm.contacts import services as contacts
 from crm.fields import services as fields
-from crm.lists import csvio
-from crm.lists.models import ImportJob, JobStatus
+from crm.lists import csvio, deal_import
+from crm.lists.models import ImportJob, ImportKind, JobStatus
 
 STANDARD_TARGETS = (
     "first_name",
@@ -35,11 +35,12 @@ STANDARD_TARGETS = (
     "time_zone",
     "date_of_birth",
     "tags",
+    "company",
 )
 CUSTOM_PREFIX = "custom."
 IGNORE = "ignore"
 PREVIEW_ROWS = 5
-TAG_SEPARATOR = ";"
+TAG_SEPARATOR = re.compile(r"[;,]")
 _NON_WORD = re.compile(r"[^a-z0-9]+")
 
 
@@ -47,22 +48,37 @@ def _key(header: str) -> str:
     return _NON_WORD.sub("_", header.strip().lower()).strip("_")
 
 
-def _targets(workspace_id: uuid.UUID) -> set[str]:
+def _targets(workspace_id: uuid.UUID, kind: str = ImportKind.CONTACTS) -> set[str]:
+    if kind == ImportKind.DEALS:
+        return {*deal_import.all_targets(workspace_id), IGNORE}
     custom = {f"{CUSTOM_PREFIX}{d.key}" for d in fields.list_definitions(workspace_id, "contact")}
     return {*STANDARD_TARGETS, *custom, IGNORE}
 
 
-def suggest_mapping(workspace_id: uuid.UUID, headers: list[str]) -> dict[str, str]:
+def targets(workspace_id: uuid.UUID, kind: str) -> set[str]:
+    """Every column target a file of this kind can be mapped to, plus ``ignore``."""
+    return _targets(workspace_id, kind)
+
+
+def suggest_mapping(
+    workspace_id: uuid.UUID, headers: list[str], kind: str = ImportKind.CONTACTS
+) -> dict[str, str]:
     """Match headers to targets by normalised name; unknown headers are ignored."""
-    targets = _targets(workspace_id)
-    aliases = {
-        "firstname": "first_name",
-        "lastname": "last_name",
-        "zip": "postal_code",
-        "postal": "postal_code",
-        "mobile": "phone",
-        "tag": "tags",
-    }
+    targets = _targets(workspace_id, kind)
+    aliases = (
+        deal_import.ALIASES
+        if kind == ImportKind.DEALS
+        else {
+            "businessname": "company",
+            "companyname": "company",
+            "firstname": "first_name",
+            "lastname": "last_name",
+            "zip": "postal_code",
+            "postal": "postal_code",
+            "mobile": "phone",
+            "tag": "tags",
+        }
+    )
     out: dict[str, str] = {}
     for header in headers:
         key = _key(header)
@@ -73,7 +89,12 @@ def suggest_mapping(workspace_id: uuid.UUID, headers: list[str]) -> dict[str, st
 
 
 def create_import(
-    *, workspace_id: uuid.UUID, actor: Actor, file_name: str, raw: bytes
+    *,
+    workspace_id: uuid.UUID,
+    actor: Actor,
+    file_name: str,
+    raw: bytes,
+    kind: str = ImportKind.CONTACTS,
 ) -> ImportJob:
     if len(raw) > settings.CRM_IMPORT_MAX_BYTES:
         raise ValidationFailedError("file too large", errors={"file": "too_large"})
@@ -91,10 +112,11 @@ def create_import(
         raise ValidationFailedError("bad row count", errors={"file": "invalid_row_count"})
     job = ImportJob.objects.create(
         workspace_id=workspace_id,
+        kind=kind,
         file_name=file_name[:200],
         content=text,
         headers=cleaned,
-        mapping=suggest_mapping(workspace_id, cleaned),
+        mapping=suggest_mapping(workspace_id, cleaned, kind),
         total_rows=total,
         created_by_id=uuid.UUID(actor.id) if actor.type == "human" else None,
     )
@@ -128,8 +150,10 @@ def preview(job: ImportJob) -> list[dict[str, str]]:
     return out
 
 
-def _check_mapping(workspace_id: uuid.UUID, headers: list[str], mapping: dict[str, str]) -> None:
-    targets = _targets(workspace_id)
+def _check_mapping(
+    workspace_id: uuid.UUID, headers: list[str], mapping: dict[str, str], kind: str
+) -> None:
+    targets = _targets(workspace_id, kind)
     errors: dict[str, str] = {}
     used: list[str] = []
     for header in headers:
@@ -140,7 +164,9 @@ def _check_mapping(workspace_id: uuid.UUID, headers: list[str], mapping: dict[st
             used.append(target)
     if len(used) != len(set(used)):
         errors["mapping"] = "duplicate_target"
-    if not {"email", "phone"} & set(used):
+    if kind == ImportKind.DEALS:
+        errors.update(deal_import.check_mapping(used))
+    elif not {"email", "phone"} & set(used):
         errors["mapping"] = "identity_required"
     if errors:
         raise ValidationFailedError("invalid mapping", errors=errors)
@@ -150,6 +176,7 @@ def _check_options(options: dict[str, Any]) -> dict[str, Any]:
     clean = {
         "tags": [str(t).strip() for t in options.get("tags", []) if str(t).strip()],
         "update_existing": bool(options.get("update_existing", True)),
+        "create_missing": bool(options.get("create_missing", True)),
         "consent": None,
     }
     wanted = options.get("consent")
@@ -173,7 +200,7 @@ def _row_data(headers: list[str], mapping: dict[str, str], row: list[str]) -> di
         if target == IGNORE or not value:
             continue
         if target == "tags":
-            data["tags"] = [t.strip() for t in value.split(TAG_SEPARATOR) if t.strip()]
+            data["tags"] = [t.strip() for t in TAG_SEPARATOR.split(value) if t.strip()]
         elif target.startswith(CUSTOM_PREFIX):
             custom[target.removeprefix(CUSTOM_PREFIX)] = value
         else:
@@ -185,7 +212,7 @@ def _row_data(headers: list[str], mapping: dict[str, str], row: list[str]) -> di
 
 def dry_run(*, workspace_id: uuid.UUID, job: ImportJob, mapping: dict[str, str]) -> dict[str, Any]:
     """Validate every row without writing anything."""
-    _check_mapping(workspace_id, job.headers, mapping)
+    _check_mapping(workspace_id, job.headers, mapping, job.kind)
     rows = csvio.read_rows(job.content)
     next(rows, None)
     seen: set[str] = set()
@@ -196,8 +223,13 @@ def dry_run(*, workspace_id: uuid.UUID, job: ImportJob, mapping: dict[str, str])
             continue
         data = _row_data(job.headers, mapping, row)
         try:
+            if job.kind == ImportKind.DEALS:
+                deal_import.parse(workspace_id, data)
+                valid += 1
+                continue
             clean = contacts.validate_contact_data(
-                workspace_id, {k: v for k, v in data.items() if k not in {"custom", "tags"}}
+                workspace_id,
+                {k: v for k, v in data.items() if k not in {"custom", "tags", "company"}},
             )
             identity = clean.get("email") or clean.get("phone") or ""
             if identity and identity in seen:
@@ -232,7 +264,7 @@ def start(
             raise NotFoundError("import not found")
         if job.status != JobStatus.UPLOADED:
             raise ConflictError("import already started", errors={"import": "already_started"})
-        _check_mapping(workspace_id, job.headers, mapping)
+        _check_mapping(workspace_id, job.headers, mapping, job.kind)
         job.mapping, job.options, job.status = mapping, _check_options(options), JobStatus.QUEUED
         job.save()
         record_event(
@@ -277,11 +309,23 @@ def run(*, workspace_id: uuid.UUID, job_id: uuid.UUID) -> ImportJob:
 def _process_row(job: ImportJob, actor: Actor, number: int, row: list[str]) -> None:
     workspace_id = job.workspace_id
     data = _row_data(job.headers, job.mapping, row)
-    tags = [*job.options.get("tags", []), *data.get("tags", [])]
-    if tags:
-        data["tags"] = tags
     try:
         with transaction.atomic():
+            if job.kind == ImportKind.DEALS:
+                created = deal_import.write(
+                    workspace_id=workspace_id, actor=actor, data=data, options=job.options
+                )
+                job.created_count += int(created)
+                job.updated_count += int(not created)
+                return
+            tags = [*job.options.get("tags", []), *data.get("tags", [])]
+            if tags:
+                data["tags"] = tags
+            company = data.pop("company", "")
+            if company:
+                data["company_id"] = contacts.find_or_create_company(
+                    workspace_id=workspace_id, actor=actor, name=company
+                ).pk
             if job.options.get("update_existing", True):
                 contact, created = contacts.upsert_contact(
                     workspace_id=workspace_id, actor=actor, data=data
