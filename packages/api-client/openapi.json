@@ -4673,6 +4673,11 @@
       },
       "CreatedOut": {
         "properties": {
+          "config": {
+            "additionalProperties": true,
+            "title": "Config",
+            "type": "object"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -4717,6 +4722,7 @@
           "name",
           "public_id",
           "is_active",
+          "config",
           "last_received_at",
           "secret"
         ],
@@ -5698,6 +5704,12 @@
       },
       "EndpointIn": {
         "properties": {
+          "config": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Config",
+            "type": "object"
+          },
           "kind": {
             "title": "Kind",
             "type": "string"
@@ -5716,6 +5728,11 @@
       },
       "EndpointOut": {
         "properties": {
+          "config": {
+            "additionalProperties": true,
+            "title": "Config",
+            "type": "object"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -5756,9 +5773,39 @@
           "name",
           "public_id",
           "is_active",
+          "config",
           "last_received_at"
         ],
         "title": "EndpointOut",
+        "type": "object"
+      },
+      "EndpointPatch": {
+        "properties": {
+          "config": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "EndpointPatch",
         "type": "object"
       },
       "EnrollIn": {
@@ -37123,6 +37170,58 @@
           }
         ],
         "summary": "Set Active",
+        "tags": [
+          "crm-webhooks"
+        ]
+      },
+      "put": {
+        "operationId": "crm_webhooks_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpoint_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Endpoint Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EndpointPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EndpointOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "EnrolledSessionAuth": []
+          },
+          {
+            "TokenAuth": []
+          },
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Update",
         "tags": [
           "crm-webhooks"
         ]

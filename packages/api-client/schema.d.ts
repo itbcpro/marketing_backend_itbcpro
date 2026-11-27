@@ -4697,7 +4697,8 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
+        /** Update */
+        put: operations["crm_webhooks_update"];
         post?: never;
         /** Delete */
         delete: operations["crm_webhooks_delete"];
@@ -9652,6 +9653,10 @@ export interface components {
         };
         /** CreatedOut */
         CreatedOut: {
+            /** Config */
+            config: {
+                [key: string]: unknown;
+            };
             /**
              * Id
              * Format: uuid
@@ -9994,6 +9999,13 @@ export interface components {
         };
         /** EndpointIn */
         EndpointIn: {
+            /**
+             * Config
+             * @default {}
+             */
+            config: {
+                [key: string]: unknown;
+            };
             /** Kind */
             kind: string;
             /** Name */
@@ -10001,6 +10013,10 @@ export interface components {
         };
         /** EndpointOut */
         EndpointOut: {
+            /** Config */
+            config: {
+                [key: string]: unknown;
+            };
             /**
              * Id
              * Format: uuid
@@ -10016,6 +10032,15 @@ export interface components {
             name: string;
             /** Public Id */
             public_id: string;
+        };
+        /** EndpointPatch */
+        EndpointPatch: {
+            /** Config */
+            config?: {
+                [key: string]: unknown;
+            } | null;
+            /** Name */
+            name?: string | null;
         };
         /** EnrollIn */
         EnrollIn: {
@@ -23642,6 +23667,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CreatedOut"];
+                };
+            };
+        };
+    };
+    crm_webhooks_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endpoint_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EndpointPatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EndpointOut"];
                 };
             };
         };
